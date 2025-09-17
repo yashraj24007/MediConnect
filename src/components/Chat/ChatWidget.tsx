@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MessageCircle, Send, X } from "lucide-react";
+import { MessageCircle, Send, X, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { GroqChatService, ChatMessage } from "@/services/groqService";
 
 interface Message {
   id: string;
@@ -17,14 +17,25 @@ export const ChatWidget = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      content: "Hello! How can I help you today? Please note, I'm an AI assistant and not a medical professional.",
+      content: "Hello! I'm your AI health assistant powered by Groq. How can I help you today? Please note, I'm an AI assistant and not a medical professional.",
       isBot: true,
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
+  const [apiKeyConfigured, setApiKeyConfigured] = useState<boolean | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Check if API key is configured on component mount
+  useEffect(() => {
+    const checkApiKey = async () => {
+      const configured = await GroqChatService.isApiKeyConfigured();
+      setApiKeyConfigured(configured);
+    };
+    checkApiKey();
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -36,6 +47,18 @@ export const ChatWidget = () => {
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
+
+    // Check if API key is configured
+    if (!apiKeyConfigured) {
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "⚠️ Groq API key is not configured. Please add your Groq API key to the .env file to enable AI chat functionality.",
+        isBot: true,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, botMessage]);
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -50,19 +73,22 @@ export const ChatWidget = () => {
     setIsLoading(true);
 
     try {
-      // Call the Supabase Edge Function for AI chat
-      const { data, error } = await supabase.functions.invoke('chat-ai', {
-        body: { message: messageContent },
-      });
+      // Get response from Groq
+      const response = await GroqChatService.sendMessage(messageContent, conversationHistory);
 
-      if (error) {
-        console.error('Error calling chat function:', error);
-        throw error;
-      }
+      // Update conversation history
+      const newHistory: ChatMessage[] = [
+        ...conversationHistory,
+        { role: 'user', content: messageContent },
+        { role: 'assistant', content: response }
+      ];
+      
+      // Keep only last 10 messages to manage context length
+      setConversationHistory(newHistory.slice(-10));
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.response || "I apologize, but I couldn't process your request right now. Please try again.",
+        content: response,
         isBot: true,
         timestamp: new Date(),
       };
@@ -99,7 +125,12 @@ export const ChatWidget = () => {
         <div className="absolute bottom-20 right-0 w-80 md:w-96 bg-card rounded-lg shadow-elevated border border-border flex flex-col h-[500px]">
           {/* Header */}
           <div className="hero-gradient text-primary-foreground p-4 rounded-t-lg flex justify-between items-center">
-            <h3 className="font-bold text-lg">AI Health Assistant</h3>
+            <div className="flex items-center space-x-2">
+              <h3 className="font-bold text-lg">AI Health Assistant</h3>
+              {!apiKeyConfigured && (
+                <AlertCircle className="w-4 h-4 text-yellow-300" />
+              )}
+            </div>
             <Button
               variant="ghost"
               size="icon"
