@@ -17,7 +17,7 @@ export const ChatWidget = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      content: "Hello! I'm your AI health assistant powered by Groq. How can I help you today? Please note, I'm an AI assistant and not a medical professional.",
+      content: "Hello! I'm Aura, your AI health assistant powered by Groq. How can I help you today? Please note, I'm an AI assistant and not a medical professional.",
       isBot: true,
       timestamp: new Date(),
     },
@@ -126,7 +126,7 @@ export const ChatWidget = () => {
           {/* Header */}
           <div className="hero-gradient text-primary-foreground p-4 rounded-t-lg flex justify-between items-center">
             <div className="flex items-center space-x-2">
-              <h3 className="font-bold text-lg">AI Health Assistant</h3>
+              <h3 className="font-bold text-lg">Aura - AI Health Assistant</h3>
               {!apiKeyConfigured && (
                 <AlertCircle className="w-4 h-4 text-yellow-300" />
               )}
