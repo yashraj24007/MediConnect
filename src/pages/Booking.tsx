@@ -24,6 +24,7 @@ export default function Booking() {
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
   const [patientRecord, setPatientRecord] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const [formData, setFormData] = useState({
     firstName: profile?.first_name || "",
     lastName: profile?.last_name || "",
@@ -32,10 +33,16 @@ export default function Booking() {
   });
 
   useEffect(() => {
-    fetchDoctors();
-    if (user && profile?.role === 'patient') {
-      fetchPatientRecord();
-    }
+    const loadData = async () => {
+      setIsLoadingData(true);
+      await fetchDoctors();
+      if (user && profile?.role === 'patient') {
+        await fetchPatientRecord();
+      }
+      setIsLoadingData(false);
+    };
+    
+    loadData();
   }, [user, profile]);
 
   useEffect(() => {
@@ -50,25 +57,33 @@ export default function Booking() {
   }, [profile]);
 
   const fetchDoctors = async () => {
-    const { data, error } = await supabase
-      .from('doctors')
-      .select(`
-        *,
-        profiles (
-          first_name,
-          last_name,
-          email
-        )
-      `);
-    
-    if (error) {
-      console.error('Error fetching doctors:', error);
-      return;
-    }
-    
-    setDoctors(data || []);
-    if (data && data.length > 0) {
-      setSelectedDoctor(data[0]);
+    try {
+      const { data, error } = await supabase
+        .from('doctors')
+        .select(`
+          *,
+          profiles (
+            first_name,
+            last_name,
+            email
+          )
+        `);
+      
+      if (error) {
+        console.error('Error fetching doctors:', error);
+        toast.error("Failed to load doctors. Please refresh the page.");
+        return;
+      }
+      
+      setDoctors(data || []);
+      if (data && data.length > 0) {
+        setSelectedDoctor(data[0]);
+      } else {
+        toast.error("No doctors available at the moment. Please try again later or contact support.");
+      }
+    } catch (error) {
+      console.error('Unexpected error fetching doctors:', error);
+      toast.error("Failed to load doctors. Please refresh the page.");
     }
   };
 
@@ -86,7 +101,29 @@ export default function Booking() {
       return;
     }
     
-    setPatientRecord(data);
+    // If no patient record exists, create one
+    if (!data && profile?.role === 'patient') {
+      const { data: newPatient, error: createError } = await supabase
+        .from('patients')
+        .insert({
+          profile_id: profile.id,
+          medical_history: '',
+          emergency_contact: '',
+          insurance_info: ''
+        })
+        .select()
+        .single();
+      
+      if (createError) {
+        console.error('Error creating patient record:', createError);
+        toast.error("Failed to create patient record. Please try again.");
+        return;
+      }
+      
+      setPatientRecord(newPatient);
+    } else {
+      setPatientRecord(data);
+    }
   };
 
   const timeSlots = [
@@ -112,8 +149,33 @@ export default function Booking() {
       return;
     }
 
-    if (!selectedDoctor || !patientRecord) {
-      toast.error("Unable to book appointment. Please try again.");
+    if (!selectedDoctor) {
+      toast.error("No doctor selected. Please refresh and try again.");
+      return;
+    }
+
+    if (!patientRecord) {
+      toast.error("Patient record not found. Please refresh and try again.");
+      return;
+    }
+
+    // Validate form data
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.phone.trim()) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    // Validate phone format (basic check)
+    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+    if (!phoneRegex.test(formData.phone.replace(/[\s\-\(\)]/g, ''))) {
+      toast.error("Please enter a valid phone number.");
       return;
     }
 
@@ -131,7 +193,33 @@ export default function Booking() {
       };
 
       const startTime = timeMapping[selectedTime];
-      const endTime = timeMapping[selectedTime]?.replace(/(\d{2}):00:00/, (_, hour) => `${parseInt(hour) + 1}:00:00`);
+      if (!startTime) {
+        toast.error("Invalid time selected. Please try again.");
+        return;
+      }
+
+      const endTime = startTime.replace(/(\d{2}):00:00/, (_, hour) => `${String(parseInt(hour) + 1).padStart(2, '0')}:00:00`);
+
+      // Check for existing appointments at the same time
+      const { data: existingAppointments, error: checkError } = await supabase
+        .from('appointments')
+        .select('id')
+        .eq('doctor_id', selectedDoctor.id)
+        .eq('appointment_date', selectedDate)
+        .eq('start_time', startTime)
+        .eq('status', 'scheduled');
+
+      if (checkError) {
+        console.error('Error checking existing appointments:', checkError);
+        toast.error("Failed to verify appointment availability. Please try again.");
+        return;
+      }
+
+      if (existingAppointments && existingAppointments.length > 0) {
+        toast.error("This time slot is no longer available. Please select a different time.");
+        setCurrentStep(1);
+        return;
+      }
 
       const { error } = await supabase
         .from('appointments')
@@ -142,13 +230,20 @@ export default function Booking() {
           start_time: startTime,
           end_time: endTime,
           service_type: 'General Consultation',
-          fee: 0,
+          fee: selectedDoctor.consultation_fee || 0,
           status: 'scheduled'
         });
 
       if (error) {
         console.error('Error creating appointment:', error);
-        toast.error("Failed to book appointment. Please try again.");
+        if (error.code === '23505') {
+          toast.error("This time slot is no longer available. Please select a different time.");
+          setCurrentStep(1);
+        } else if (error.code === '23503') {
+          toast.error("Invalid doctor or patient record. Please refresh and try again.");
+        } else {
+          toast.error(`Failed to book appointment: ${error.message || 'Unknown error'}`);
+        }
         return;
       }
 
@@ -165,6 +260,72 @@ export default function Booking() {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  if (isLoadingData) {
+    return (
+      <div className="min-h-screen bg-muted py-12">
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (profile && profile.role !== 'patient') {
+    return (
+      <div className="min-h-screen bg-muted py-12">
+        <div className="container mx-auto px-4 lg:px-6">
+          <Card className="medical-card max-w-md mx-auto">
+            <CardContent className="p-8 text-center">
+              <h2 className="text-xl font-bold text-primary mb-4">Access Restricted</h2>
+              <p className="text-muted-foreground mb-6">
+                Only patients can book appointments. Please log in with a patient account.
+              </p>
+              <Button asChild>
+                <Link to="/auth">Go to Login</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if no doctors are available
+  if (!isLoadingData && doctors.length === 0) {
+    return (
+      <div className="min-h-screen bg-muted py-12">
+        <div className="container mx-auto px-4 lg:px-6">
+          <Button asChild variant="ghost" className="mb-6">
+            <Link to="/">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Link>
+          </Button>
+          
+          <Card className="medical-card max-w-md mx-auto">
+            <CardContent className="p-8 text-center">
+              <h2 className="text-xl font-bold text-primary mb-4">No Doctors Available</h2>
+              <p className="text-muted-foreground mb-6">
+                We currently don't have any doctors available for appointments. 
+                Please check back later or contact our support team.
+              </p>
+              <div className="space-y-3">
+                <Button onClick={() => window.location.reload()} className="w-full">
+                  Refresh Page
+                </Button>
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/">Go to Home</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (currentStep === 1) {
     return (

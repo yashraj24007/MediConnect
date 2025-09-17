@@ -44,11 +44,6 @@ export const Header = () => {
     if (!profile) return authenticatedLinks;
 
     switch (profile.role) {
-      case 'admin':
-        return [
-          { name: "Dashboard", href: "/admin" },
-          ...authenticatedLinks,
-        ];
       case 'doctor':
         return [
           { name: "Dashboard", href: "/doctor" },

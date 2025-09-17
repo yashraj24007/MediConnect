@@ -13,7 +13,6 @@ import Account from "./pages/Account";
 import FileShare from "./pages/FileShare";
 import Booking from "./pages/Booking";
 import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
 import Doctor from "./pages/Doctor";
 import Hospitals from "./pages/Hospitals";
 import HospitalProfile from "./pages/HospitalProfile";
@@ -41,8 +40,6 @@ function AppRoutes() {
     if (!profile) return '/'; // Allow access to home while profile is loading
     
     switch (profile.role) {
-      case 'admin':
-        return '/admin';
       case 'doctor':
         return '/doctor';
       case 'patient':
@@ -102,7 +99,7 @@ function AppRoutes() {
         } />
         
         <Route path="/members" element={
-          <ProtectedRoute allowedRoles={['patient', 'doctor', 'admin']}>
+          <ProtectedRoute allowedRoles={['patient', 'doctor']}>
             <Layout>
               <Members />
             </Layout>
@@ -110,7 +107,7 @@ function AppRoutes() {
         } />
         
         <Route path="/account" element={
-          <ProtectedRoute allowedRoles={['patient', 'doctor', 'admin']}>
+          <ProtectedRoute allowedRoles={['patient', 'doctor']}>
             <Layout>
               <Account />
             </Layout>
@@ -118,7 +115,7 @@ function AppRoutes() {
         } />
         
         <Route path="/file-share" element={
-          <ProtectedRoute allowedRoles={['patient', 'doctor', 'admin']}>
+          <ProtectedRoute allowedRoles={['patient', 'doctor']}>
             <Layout>
               <FileShare />
             </Layout>
@@ -134,14 +131,6 @@ function AppRoutes() {
         } />
         
         {/* Role-specific dashboards */}
-        <Route path="/admin" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <Layout>
-              <Admin />
-            </Layout>
-          </ProtectedRoute>
-        } />
-        
         <Route path="/doctor" element={
           <ProtectedRoute allowedRoles={['doctor']}>
             <Layout>

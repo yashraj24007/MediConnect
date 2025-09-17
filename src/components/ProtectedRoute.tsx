@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  allowedRoles?: ('patient' | 'doctor' | 'admin')[]
+  allowedRoles?: ('patient' | 'doctor')[]
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {

@@ -16,7 +16,7 @@ import { z } from 'zod'
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.enum(['patient', 'doctor', 'admin']).optional()
+  role: z.enum(['patient', 'doctor']).optional()
 })
 
 const signUpSchema = z.object({
@@ -25,7 +25,7 @@ const signUpSchema = z.object({
   confirmPassword: z.string(),
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
-  role: z.enum(['patient', 'doctor', 'admin'])
+  role: z.enum(['patient', 'doctor'])
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -250,7 +250,6 @@ export default function Auth() {
                           <SelectContent>
                             <SelectItem value="patient">Patient</SelectItem>
                             <SelectItem value="doctor">Doctor</SelectItem>
-                            <SelectItem value="admin">Administrator</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

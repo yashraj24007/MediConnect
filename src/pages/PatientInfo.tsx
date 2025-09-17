@@ -60,7 +60,28 @@ export default function PatientInfo() {
       return;
     }
     
-    setPatientRecord(data);
+    // If no patient record exists, create one
+    if (!data && profile?.role === 'patient') {
+      const { data: newPatient, error: createError } = await supabase
+        .from('patients')
+        .insert({
+          profile_id: profile.id,
+          medical_history: '',
+          emergency_contact: '',
+          insurance_info: ''
+        })
+        .select()
+        .single();
+      
+      if (createError) {
+        console.error('Error creating patient record:', createError);
+        return;
+      }
+      
+      setPatientRecord(newPatient);
+    } else {
+      setPatientRecord(data);
+    }
   };
 
   const fetchAppointments = async () => {

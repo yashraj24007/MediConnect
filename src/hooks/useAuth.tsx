@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 
-type UserRole = 'patient' | 'doctor' | 'admin'
+type UserRole = 'patient' | 'doctor'
 
 interface Profile {
   id: string
@@ -54,7 +54,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshProfile = async () => {
     if (user) {
       const profileData = await fetchProfile(user.id)
-      setProfile(profileData)
+      // Handle legacy admin users by redirecting them or treating as patient
+      if (profileData && profileData.role === 'admin') {
+        // Optionally update their role to patient in the database
+        // For now, just don't set the profile (effectively logs them out)
+        setProfile(null)
+        return
+      }
+      setProfile(profileData as Profile)
     }
   }
 
@@ -69,7 +76,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Fetch profile data with a small delay to ensure the trigger has run
           setTimeout(async () => {
             const profileData = await fetchProfile(session.user.id)
-            setProfile(profileData)
+            // Handle legacy admin users
+            if (profileData && profileData.role === 'admin') {
+              setProfile(null)
+              setLoading(false)
+              return
+            }
+            setProfile(profileData as Profile)
             setLoading(false)
           }, 100)
         } else {
@@ -87,7 +100,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         setTimeout(async () => {
           const profileData = await fetchProfile(session.user.id)
-          setProfile(profileData)
+          // Handle legacy admin users
+          if (profileData && profileData.role === 'admin') {
+            setProfile(null)
+            setLoading(false)
+            return
+          }
+          setProfile(profileData as Profile)
           setLoading(false)
         }, 100)
       } else {

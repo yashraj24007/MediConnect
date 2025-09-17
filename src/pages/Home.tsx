@@ -163,7 +163,7 @@ Please note: This is an AI suggestion and not a medical diagnosis. Always consul
                 About MediConnect
               </h2>
               <p className="text-muted-foreground leading-relaxed text-lg">
-                MediConnect is your all-in-one healthcare partner, dedicated to simplifying and enhancing your medical experience. Our platform is designed to provide role-based dashboards for patients, doctors, and administrators, ensuring easy access to personalized information tailored to your unique needs.
+                MediConnect is your all-in-one healthcare partner, dedicated to simplifying and enhancing your medical experience. Our platform is designed to provide role-based dashboards for patients and doctors, ensuring easy access to personalized information tailored to your unique needs.
               </p>
             </div>
             
