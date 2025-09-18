@@ -4,82 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Clock, Star } from "lucide-react";
-
-interface Doctor {
-  id: string;
-  name: string;
-  specialty: string;
-  location: string;
-  rating: number;
-  experience: string;
-  availability: string;
-  image?: string;
-}
+import { Search, MapPin, Clock, Star, Phone, Mail } from "lucide-react";
+import { doctors } from "@/data/doctors";
 
 export default function Members() {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const doctors: Doctor[] = [
-    {
-      id: "1",
-      name: "Dr. Ben Adams",
-      specialty: "Cardiologist",
-      location: "Main Clinic",
-      rating: 4.8,
-      experience: "15+ years",
-      availability: "Available today",
-    },
-    {
-      id: "2",
-      name: "Dr. Emily Carter",
-      specialty: "Dermatologist", 
-      location: "Downtown Branch",
-      rating: 4.9,
-      experience: "12+ years",
-      availability: "Next available: Tomorrow",
-    },
-    {
-      id: "3",
-      name: "Dr. Sarah Wilson",
-      specialty: "General Medicine",
-      location: "Main Clinic",
-      rating: 4.7,
-      experience: "10+ years",
-      availability: "Available today",
-    },
-    {
-      id: "4",
-      name: "Dr. Michael Chen",
-      specialty: "Orthopedic Surgeon",
-      location: "Surgical Center",
-      rating: 4.9,
-      experience: "20+ years",
-      availability: "Next available: Next week",
-    },
-    {
-      id: "5",
-      name: "Dr. Lisa Rodriguez",
-      specialty: "Pediatrician",
-      location: "Family Clinic",
-      rating: 4.8,
-      experience: "8+ years",
-      availability: "Available today",
-    },
-    {
-      id: "6",
-      name: "Dr. James Thompson",
-      specialty: "Neurologist",
-      location: "Specialty Center",
-      rating: 4.6,
-      experience: "18+ years",
-      availability: "Next available: This week",
-    },
-  ];
-
   const filteredDoctors = doctors.filter(doctor =>
     doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doctor.specialty.toLowerCase().includes(searchQuery.toLowerCase())
+    doctor.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    doctor.hospital.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getInitials = (name: string) => {
@@ -90,14 +24,32 @@ export default function Members() {
       .toUpperCase();
   };
 
-  const getAvailabilityBadge = (availability: string) => {
-    if (availability.includes("Available today")) {
-      return <Badge className="bg-success text-success-foreground">Available Today</Badge>;
-    } else if (availability.includes("Tomorrow")) {
-      return <Badge variant="secondary">Tomorrow</Badge>;
+  const getAvailabilityStatus = (availability: { [key: string]: string }) => {
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    if (availability[today] && availability[today] !== "Closed") {
+      return "Available today";
     } else {
-      return <Badge variant="outline">Upcoming</Badge>;
+      const nextDay = Object.keys(availability).find(day => 
+        availability[day] && availability[day] !== "Closed"
+      );
+      return nextDay ? `Next available: ${nextDay}` : "Schedule varies";
     }
+  };
+
+  const getAvailabilityBadge = (availability: { [key: string]: string }) => {
+    const status = getAvailabilityStatus(availability);
+    if (status.includes("Available today")) {
+      return <Badge className="bg-success text-success-foreground">Available Today</Badge>;
+    } else if (status.includes("Next available")) {
+      return <Badge variant="secondary">{status}</Badge>;
+    } else {
+      return <Badge variant="outline">Schedule Varies</Badge>;
+    }
+  };
+
+  const calculateRating = (experience: number) => {
+    // Generate a rating based on experience (4.5-4.9 range)
+    return Math.min(4.9, 4.5 + (experience / 50)).toFixed(1);
   };
 
   return (
@@ -144,6 +96,9 @@ export default function Members() {
                     <CardDescription className="text-primary font-medium">
                       {doctor.specialty}
                     </CardDescription>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {doctor.qualification}
+                    </p>
                   </div>
                 </div>
               </CardHeader>
@@ -152,17 +107,35 @@ export default function Members() {
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <MapPin className="w-4 h-4" />
-                    {doctor.location}
+                    {doctor.hospital}
                   </div>
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{doctor.rating}</span>
+                    <span className="font-medium">{calculateRating(doctor.experience)}</span>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Clock className="w-4 h-4" />
-                  Experience: {doctor.experience}
+                  Experience: {doctor.experience}+ years
+                </div>
+
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Phone className="w-4 h-4" />
+                  {doctor.phone}
+                </div>
+
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Mail className="w-4 h-4" />
+                  {doctor.email}
+                </div>
+
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {doctor.languages.slice(0, 3).map((language, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {language}
+                    </Badge>
+                  ))}
                 </div>
                 
                 <div className="flex items-center justify-between">

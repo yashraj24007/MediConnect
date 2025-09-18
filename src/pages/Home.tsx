@@ -79,27 +79,40 @@ Please note: This is an AI suggestion and not a medical diagnosis. Always consul
     <div className="min-h-screen">
       {/* Hero Section */}
       <section 
-        className="relative h-[75vh] flex items-center justify-center text-primary-foreground"
-        style={{
-          backgroundImage: `linear-gradient(rgba(10, 43, 91, 0.75), rgba(10, 43, 91, 0.75)), url(${heroImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
+        className="relative h-[75vh] flex items-center justify-center text-primary-foreground overflow-hidden"
       >
-        <div className="text-center max-w-4xl mx-auto px-4">
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-6">
-            Welcome to MediConnect
-          </h1>
-          <p className="text-lg md:text-xl mb-8 text-primary-foreground/90">
-            Your Health, Your Doctor, One Click Away
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button asChild variant="accent" size="lg">
-              <Link to="/booking">Book Now</Link>
-            </Button>
-            <Button asChild variant="glass" size="lg">
-              <a href="#about">Learn More</a>
-            </Button>
+        {/* Background Image with Theme-aware Overlay */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${heroImage})`,
+          }}
+        />
+        {/* Theme-aware Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-primary/70 to-accent/60 dark:from-primary/90 dark:via-primary/80 dark:to-accent/70" />
+        
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-accent/30 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-pulse delay-1000" />
+        </div>
+
+        <div className="relative text-center max-w-4xl mx-auto px-4 z-10">
+          <div className="space-y-6 animate-fadeIn">
+            <h1 className="text-4xl md:text-6xl font-extrabold mb-6 bg-gradient-to-r from-white to-primary-foreground bg-clip-text text-transparent">
+              Welcome to MediConnect
+            </h1>
+            <p className="text-lg md:text-xl mb-8 text-primary-foreground/95 max-w-2xl mx-auto leading-relaxed">
+              Your Health, Your Doctor, One Click Away
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button asChild variant="accent" size="lg" className="shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                <Link to="/booking">Book Now</Link>
+              </Button>
+              <Button asChild variant="glass" size="lg" className="shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+                <a href="#about">Learn More</a>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -111,7 +124,7 @@ Please note: This is an AI suggestion and not a medical diagnosis. Always consul
             Feeling Unwell?
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-            Describe your symptoms below, and our AI assistant can suggest a next step.
+            Describe your symptoms below - from a simple headache to experiencing an unusual aura - and our AI assistant can suggest the next step for your health.
           </p>
           
           <Card className="max-w-2xl mx-auto medical-card">

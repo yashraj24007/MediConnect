@@ -61,6 +61,14 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        pastel: {
+          purple: "#E6D6FF",
+          pink: "#FFD6E6",
+          blue: "#D6E6FF", 
+          green: "#D6FFE6",
+          yellow: "#FFFFD6",
+          orange: "#FFE6D6",
+        },
       },
       transitionTimingFunction: {
         'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
