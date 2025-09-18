@@ -175,15 +175,6 @@ export default function Auth() {
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? 'Signing in...' : 'Sign In'}
                   </Button>
-                  
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    className="w-full" 
-                    onClick={() => navigate('/')}
-                  >
-                    Skip for now
-                  </Button>
                 </form>
               </Form>
             </TabsContent>
@@ -287,15 +278,6 @@ export default function Auth() {
                   
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? 'Creating account...' : 'Create Account'}
-                  </Button>
-                  
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    className="w-full" 
-                    onClick={() => navigate('/')}
-                  >
-                    Skip for now
                   </Button>
                 </form>
               </Form>

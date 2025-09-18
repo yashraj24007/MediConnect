@@ -53,7 +53,7 @@ export const Header = () => {
       case 'patient':
         return [
           ...authenticatedLinks,
-          { name: "My Appointments", href: "/patient-info" },
+          { name: "My Appointments", href: "/account" },
           { name: "File Share", href: "/file-share" },
           { name: "Book Appointment", href: "/booking" },
         ];

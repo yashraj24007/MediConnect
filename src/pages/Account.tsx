@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +12,26 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+interface Appointment {
+  id: string;
+  appointment_date: string;
+  start_time: string;
+  service_type?: string;
+  status: string;
+  fee: number;
+  doctors?: {
+    id: string;
+    specialty: string;
+    profiles?: {
+      first_name: string;
+      last_name: string;
+    };
+  };
+}
+
 export default function Account() {
   const { user, profile } = useAuth();
+  const location = useLocation();
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
   const [personalInfo, setPersonalInfo] = useState({
     firstName: "",
@@ -22,28 +41,9 @@ export default function Account() {
     address: "",
     email: ""
   });
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Appointment[]>([]);
 
-  useEffect(() => {
-    if (profile) {
-      setPersonalInfo({
-        firstName: profile.first_name || "",
-        lastName: profile.last_name || "",
-        phone: profile.phone || "",
-        dob: profile.date_of_birth || "",
-        address: profile.address || "",
-        email: profile.email || ""
-      });
-    }
-  }, [profile]);
-
-  useEffect(() => {
-    if (user) {
-      fetchBookings();
-    }
-  }, [user]);
-
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     if (!profile?.id) return;
     
     const { data: patientData } = await supabase
@@ -71,7 +71,33 @@ export default function Account() {
 
       setBookings(appointmentsData || []);
     }
-  };
+  }, [profile?.id]);
+
+  useEffect(() => {
+    if (profile) {
+      setPersonalInfo({
+        firstName: profile.first_name || "",
+        lastName: profile.last_name || "",
+        phone: profile.phone || "",
+        dob: profile.date_of_birth || "",
+        address: profile.address || "",
+        email: profile.email || ""
+      });
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    if (user && profile) {
+      fetchBookings();
+    }
+  }, [user, profile, fetchBookings]);
+
+  // Refresh bookings when navigating to this page
+  useEffect(() => {
+    if (location.pathname === '/account' && user && profile) {
+      fetchBookings();
+    }
+  }, [location.pathname, user, profile, fetchBookings]);
 
   const handlePersonalInfoSave = async () => {
     if (!profile?.id) return;
