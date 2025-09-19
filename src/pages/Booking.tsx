@@ -703,6 +703,13 @@ export default function Booking() {
                 variant="default" 
                 className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground shadow-lg"
               >
+                <Link to="/account">View My Appointments</Link>
+              </Button>
+              <Button 
+                asChild 
+                variant="outline" 
+                className="flex-1 border-primary text-primary hover:bg-primary/10"
+              >
                 <Link to="/booking">Book Another</Link>
               </Button>
               <Button 
