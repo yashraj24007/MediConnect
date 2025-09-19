@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { ChatWidget } from "@/components/Chat/ChatWidget";
 
 export default function Booking() {
   const { user, profile } = useAuth();
@@ -271,9 +272,27 @@ export default function Booking() {
     try {
       // Handle sample doctors (for testing without full database setup)
       if (selectedDoctor.id.startsWith('sample-')) {
-        // Simulate booking success for sample doctors
         await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-        toast.success(`Demo appointment booked with Dr. ${selectedDoctor.profiles.first_name} ${selectedDoctor.profiles.last_name}! (This is a test booking)`);
+        
+        // Create a local appointment record for demo purposes
+        const demoAppointment = {
+          id: `demo-${Date.now()}`,
+          patient_name: `${formData.firstName} ${formData.lastName}`,
+          doctor_name: `Dr. ${selectedDoctor.profiles.first_name} ${selectedDoctor.profiles.last_name}`,
+          specialty: selectedDoctor.specialty,
+          appointment_date: selectedDate,
+          start_time: selectedTime,
+          status: 'scheduled',
+          service_type: 'General Consultation',
+          fee: selectedDoctor.consultation_fee || 0
+        };
+        
+        // Store in localStorage for demo purposes (since this is a sample doctor)
+        const existingDemoAppointments = JSON.parse(localStorage.getItem('demoAppointments') || '[]');
+        existingDemoAppointments.push(demoAppointment);
+        localStorage.setItem('demoAppointments', JSON.stringify(existingDemoAppointments));
+        
+        toast.success(`✅ Demo appointment booked with Dr. ${selectedDoctor.profiles.first_name} ${selectedDoctor.profiles.last_name}! Check your appointments in the Account page.`);
         setCurrentStep(3);
         return;
       }
@@ -349,7 +368,7 @@ export default function Booking() {
         return;
       }
 
-      toast.success("Appointment booked successfully!");
+      toast.success("🎉 Appointment booked successfully! You can view it in your account under 'My Appointments'.");
       setCurrentStep(3);
     } catch (error) {
       console.error('Unexpected error:', error);
@@ -697,6 +716,9 @@ export default function Booking() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* AI Chat Assistant */}
+      <ChatWidget />
     </div>
   );
 }

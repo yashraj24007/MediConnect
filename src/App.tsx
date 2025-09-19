@@ -19,6 +19,7 @@ import Hospitals from "./pages/Hospitals";
 import HospitalProfile from "./pages/HospitalProfile";
 import Doctors from "./pages/Doctors";
 import DoctorProfile from "./pages/DoctorProfile";
+import DoctorManagement from "./pages/DoctorManagement";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 
@@ -89,6 +90,14 @@ function AppRoutes() {
           </Layout>
         } />
         
+        <Route path="/admin/doctors" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Layout>
+              <DoctorManagement />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
         {/* Protected routes */}
         
         <Route path="/patient-info" element={
@@ -133,7 +142,7 @@ function AppRoutes() {
         
         {/* Role-specific dashboards */}
         <Route path="/doctor" element={
-          <ProtectedRoute allowedRoles={['doctor']}>
+          <ProtectedRoute>
             <Layout>
               <Doctor />
             </Layout>

@@ -8,6 +8,7 @@ import { Calendar, Clock, User, Video, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
+import { ChatWidget } from "@/components/Chat/ChatWidget";
 
 interface Appointment {
   id: string;
@@ -353,6 +354,9 @@ Please bring this list with you to make the most of your appointment time.
           </CardContent>
         </Card>
       </div>
+      
+      {/* AI Chat Assistant */}
+      <ChatWidget />
     </div>
   );
 }

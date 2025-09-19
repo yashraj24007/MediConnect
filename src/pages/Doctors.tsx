@@ -1,16 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, MapPin, Phone, Mail, Award, Search, Filter, Map as MapIcon } from "lucide-react";
-import { doctors } from "@/data/doctors";
+import { User, MapPin, Phone, Mail, Award, Search, Filter, Map as MapIcon, Loader2 } from "lucide-react";
+import { DoctorService } from "@/services/doctorService";
+import { Doctor } from "@/data/doctors";
 
 export default function Doctors() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch doctors from database
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setLoading(true);
+        const doctorsData = await DoctorService.getAllDoctors();
+        setDoctors(doctorsData);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch doctors:', err);
+        setError('Failed to load doctors. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
 
   const specialties = ["all", ...new Set(doctors.map(doc => doc.specialty))];
 
@@ -23,6 +46,28 @@ export default function Doctors() {
     
     return matchesSearch && matchesSpecialty;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-muted py-12 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading doctors...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-muted py-12 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-destructive mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-muted py-12">

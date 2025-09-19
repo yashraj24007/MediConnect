@@ -1,10 +1,12 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Folder, FileText, Download, Upload, Calendar, Share, Trash2, Eye, Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface FileItem {
   id: string;
@@ -15,63 +17,164 @@ interface FileItem {
   category?: string;
   shared?: boolean;
   downloadUrl?: string;
+  isLocal?: boolean;
 }
 
-export default function FileShare() {
-  const [files, setFiles] = useState<FileItem[]>([
-    {
-      id: "1",
-      name: "2025",
-      type: "folder",
-      date: "Jan 15, 2025",
-    },
-    {
-      id: "2", 
-      name: "Lab Results",
-      type: "folder",
-      date: "Jan 10, 2025",
-    },
-    {
-      id: "3",
-      name: "X-Ray Reports",
-      type: "folder", 
-      date: "Dec 28, 2024",
-    },
-    {
-      id: "4",
-      name: "Blood Test - Complete Panel.pdf",
-      type: "file",
-      size: "2.4 MB",
-      date: "Jan 12, 2025",
-      category: "Lab Results",
-      shared: true,
-      downloadUrl: "#"
-    },
-    {
-      id: "5",
-      name: "Prescription - Dr. Carter.pdf",
-      type: "file",
-      size: "1.1 MB", 
-      date: "Jan 08, 2025",
-      category: "Prescriptions",
-      shared: false,
-      downloadUrl: "#"
-    },
-    {
-      id: "6",
-      name: "MRI Scan Results.pdf",
-      type: "file",
-      size: "15.3 MB",
-      date: "Dec 20, 2024",
-      category: "Imaging",
-      shared: true,
-      downloadUrl: "#"
-    }
-  ]);
+// Helper function to convert file to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+};
 
+export default function FileShare() {
+  const { user, profile } = useAuth();
+  const [files, setFiles] = useState<FileItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load files from database on component mount
+  useEffect(() => {
+    if (user && profile) {
+      loadUserFiles();
+    } else {
+      // Load sample files for non-authenticated users
+      loadSampleFiles();
+    }
+  }, [user, profile]);
+
+  const loadSampleFiles = () => {
+    const sampleFiles = [
+      {
+        id: "1",
+        name: "2025",
+        type: "folder",
+        date: "Jan 15, 2025",
+      },
+      {
+        id: "2", 
+        name: "Lab Results",
+        type: "folder",
+        date: "Jan 10, 2025",
+      },
+      {
+        id: "3",
+        name: "X-Ray Reports",
+        type: "folder", 
+        date: "Dec 28, 2024",
+      },
+      {
+        id: "4",
+        name: "Blood Test - Complete Panel.pdf",
+        type: "file",
+        size: "2.4 MB",
+        date: "Jan 12, 2025",
+        category: "Lab Results",
+        shared: true,
+        downloadUrl: "#"
+      },
+      {
+        id: "5",
+        name: "Prescription - Dr. Carter.pdf",
+        type: "file",
+        size: "1.1 MB", 
+        date: "Jan 08, 2025",
+        category: "Prescriptions",
+        shared: false,
+        downloadUrl: "#"
+      },
+      {
+        id: "6",
+        name: "MRI Scan Results.pdf",
+        type: "file",
+        size: "15.3 MB",
+        date: "Dec 20, 2024",
+        category: "Imaging",
+        shared: true,
+        downloadUrl: "#"
+      }
+    ] as FileItem[];
+    
+    setFiles(sampleFiles);
+    setLoading(false);
+  };
+
+  const loadUserFiles = async () => {
+    setLoading(true);
+    try {
+      let allFiles = [...loadSampleFilesData()]; // Get sample files
+      
+      // Load uploaded files from localStorage
+      const uploadedFiles = JSON.parse(localStorage.getItem('uploadedFiles') || '[]');
+      allFiles = [...uploadedFiles, ...allFiles];
+      
+      setFiles(allFiles);
+      console.log('Loaded files for user:', profile?.id, allFiles);
+    } catch (error) {
+      console.error('Error loading files:', error);
+      setFiles(loadSampleFilesData());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadSampleFilesData = () => {
+    return [
+      {
+        id: "1",
+        name: "2025",
+        type: "folder",
+        date: "Jan 15, 2025",
+      },
+      {
+        id: "2", 
+        name: "Lab Results",
+        type: "folder",
+        date: "Jan 10, 2025",
+      },
+      {
+        id: "3",
+        name: "X-Ray Reports",
+        type: "folder", 
+        date: "Dec 28, 2024",
+      },
+      {
+        id: "4",
+        name: "Blood Test - Complete Panel.pdf",
+        type: "file",
+        size: "2.4 MB",
+        date: "Jan 12, 2025",
+        category: "Lab Results",
+        shared: true,
+        downloadUrl: "#"
+      },
+      {
+        id: "5",
+        name: "Prescription - Dr. Carter.pdf",
+        type: "file",
+        size: "1.1 MB", 
+        date: "Jan 08, 2025",
+        category: "Prescriptions",
+        shared: false,
+        downloadUrl: "#"
+      },
+      {
+        id: "6",
+        name: "MRI Scan Results.pdf",
+        type: "file",
+        size: "15.3 MB",
+        date: "Dec 20, 2024",
+        category: "Imaging",
+        shared: true,
+        downloadUrl: "#"
+      }
+    ] as FileItem[];
+  };
 
   const handleFileUpload = async (uploadedFiles: FileList | null) => {
     if (!uploadedFiles || uploadedFiles.length === 0) return;
@@ -107,23 +210,97 @@ export default function FileShare() {
           continue;
         }
 
-        // Create file object
-        const newFile: FileItem = {
-          id: Date.now().toString() + i,
-          name: file.name,
-          type: "file",
-          size: formatFileSize(file.size),
-          date: new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
-          }),
-          category: getCategoryFromFileName(file.name),
-          shared: false,
-          downloadUrl: URL.createObjectURL(file)
-        };
-        
-        newFiles.push(newFile);
+        if (user && profile) {
+          // Try to upload to Supabase storage first, fall back to localStorage
+          try {
+            const fileName = `${profile.id}/${Date.now()}-${file.name}`;
+            
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('medical-files')
+              .upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: false
+              });
+
+            if (uploadError) {
+              throw uploadError;
+            }
+
+            // Get the public URL
+            const { data: { publicUrl } } = supabase.storage
+              .from('medical-files')
+              .getPublicUrl(fileName);
+
+            // Create file record
+            const newFile: FileItem = {
+              id: Date.now().toString() + i,
+              name: file.name,
+              type: "file",
+              size: formatFileSize(file.size),
+              date: new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+              }),
+              category: getCategoryFromFileName(file.name),
+              shared: false,
+              downloadUrl: publicUrl
+            };
+            
+            newFiles.push(newFile);
+          } catch (storageError) {
+            console.error('Storage error, using localStorage:', storageError);
+            // Fall back to localStorage for demo
+            const fileData = await fileToBase64(file);
+            const newFile: FileItem = {
+              id: Date.now().toString() + i,
+              name: file.name,
+              type: "file",
+              size: formatFileSize(file.size),
+              date: new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+              }),
+              category: getCategoryFromFileName(file.name),
+              shared: false,
+              downloadUrl: fileData,
+              isLocal: true
+            };
+            
+            // Store in localStorage
+            const existingFiles = JSON.parse(localStorage.getItem('uploadedFiles') || '[]');
+            existingFiles.push(newFile);
+            localStorage.setItem('uploadedFiles', JSON.stringify(existingFiles));
+            
+            newFiles.push(newFile);
+          }
+        } else {
+          // For non-authenticated users, use localStorage
+          const fileData = await fileToBase64(file);
+          const newFile: FileItem = {
+            id: Date.now().toString() + i,
+            name: file.name,
+            type: "file",
+            size: formatFileSize(file.size),
+            date: new Date().toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'short', 
+              day: 'numeric' 
+            }),
+            category: getCategoryFromFileName(file.name),
+            shared: false,
+            downloadUrl: fileData,
+            isLocal: true
+          };
+          
+          // Store in localStorage
+          const existingFiles = JSON.parse(localStorage.getItem('uploadedFiles') || '[]');
+          existingFiles.push(newFile);
+          localStorage.setItem('uploadedFiles', JSON.stringify(existingFiles));
+          
+          newFiles.push(newFile);
+        }
       }
 
       setFiles(prev => [...newFiles, ...prev]);

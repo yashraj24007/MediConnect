@@ -271,8 +271,8 @@ export const ChatWidget = () => {
 
           {/* Quick Actions */}
           {showQuickActions && messages.length === 1 && (
-            <div className="p-4 border-b border-pastel-purple/10 bg-gradient-to-r from-blue-50 to-purple-50">
-              <p className="text-sm font-body text-muted-foreground mb-3">Quick Actions:</p>
+            <div className="p-4 border-b border-pastel-purple/10 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-700 dark:border-slate-600/20">
+              <p className="text-sm font-body text-muted-foreground dark:text-slate-300 mb-3">Quick Actions:</p>
               <div className="grid grid-cols-2 gap-2">
                 {quickActions.map((action, index) => (
                   <Button
@@ -280,10 +280,10 @@ export const ChatWidget = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => handleQuickAction(action)}
-                    className="h-auto p-2 flex flex-col items-center gap-1 border-pastel-purple/20 hover:bg-pastel-purple/10 hover:border-pastel-purple/40 transition-all"
+                    className="h-auto p-2 flex flex-col items-center gap-1 border-pastel-purple/20 hover:bg-pastel-purple/10 hover:border-pastel-purple/40 dark:border-slate-600/30 dark:hover:bg-slate-700/50 dark:hover:border-slate-500/50 transition-all"
                   >
-                    <div className="text-pastel-purple">{action.icon}</div>
-                    <span className="text-xs font-body text-center leading-tight">{action.label}</span>
+                    <div className="text-pastel-purple dark:text-blue-400">{action.icon}</div>
+                    <span className="text-xs font-body text-center leading-tight dark:text-slate-300">{action.label}</span>
                   </Button>
                 ))}
               </div>
@@ -334,9 +334,9 @@ export const ChatWidget = () => {
                         onClick={() => handleActionButton(button.action)}
                         className={cn(
                           "text-xs font-body",
-                          button.variant === 'primary' && "bg-pastel-purple hover:bg-pastel-purple/90 text-white border-0",
-                          button.variant === 'secondary' && "bg-pastel-blue hover:bg-pastel-blue/90 text-white border-0",
-                          (button.variant === 'outline' || !button.variant) && "border-pastel-purple/30 text-pastel-purple hover:bg-pastel-purple/10"
+                          button.variant === 'primary' && "bg-pastel-purple hover:bg-pastel-purple/90 text-white dark:bg-blue-600 dark:hover:bg-blue-700 border-0",
+                          button.variant === 'secondary' && "bg-pastel-blue hover:bg-pastel-blue/90 text-white dark:bg-purple-600 dark:hover:bg-purple-700 border-0",
+                          (button.variant === 'outline' || !button.variant) && "border-pastel-purple/30 text-pastel-purple hover:bg-pastel-purple/10 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700/50"
                         )}
                       >
                         {button.label}
@@ -349,11 +349,11 @@ export const ChatWidget = () => {
             
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-gradient-to-br from-slate-100 to-slate-50 border border-slate-200 p-3 rounded-lg">
+                <div className="bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-600 border border-slate-200 dark:border-slate-600 p-3 rounded-lg">
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-pastel-purple rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-pastel-pink rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                    <div className="w-2 h-2 bg-pastel-blue rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                    <div className="w-2 h-2 bg-pastel-purple dark:bg-blue-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-pastel-pink dark:bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                    <div className="w-2 h-2 bg-pastel-blue dark:bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
                   </div>
                 </div>
               </div>
@@ -394,13 +394,24 @@ export const ChatWidget = () => {
       <Button
         onClick={() => setIsOpen(!isOpen)}
         size="icon"
-        className="w-16 h-16 rounded-full shadow-2xl hover:scale-110 transition-all duration-300 bg-gradient-to-r from-pastel-purple via-pastel-pink to-pastel-blue text-white border-2 border-white/20"
+        className="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-2xl hover:shadow-primary/30 transition-all duration-300 border-2 border-white/20 hover:border-white/40 dark:border-slate-700/40 dark:hover:border-slate-600/60 backdrop-blur-sm group relative overflow-hidden hover:scale-110"
       >
-        <div className="relative">
+        <div className="relative z-10 transition-transform duration-300">
           <MessageCircle className="w-8 h-8" />
           {!isOpen && (
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse border border-white"></div>
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full animate-bounce border-2 border-white dark:border-slate-800 shadow-lg"></div>
           )}
+        </div>
+        
+        {/* Enhanced animated background rings */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/30 to-accent/30 animate-ping opacity-60 group-hover:opacity-90"></div>
+        <div className="absolute inset-1 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 animate-pulse"></div>
+        <div className="absolute inset-2 rounded-full bg-gradient-to-r from-primary/10 to-accent/10 animate-pulse"></div>
+        
+        {/* Enhanced tooltip */}
+        <div className="absolute bottom-full right-0 mb-3 px-4 py-2 bg-background/95 backdrop-blur-md text-foreground text-sm font-medium rounded-xl shadow-xl border border-border/50 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap transform translate-y-2 group-hover:translate-y-0">
+          💬 Chat with Aura AI
+          <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-background/95"></div>
         </div>
       </Button>
     </div>

@@ -46,30 +46,87 @@ export default function Account() {
   const fetchBookings = async () => {
     if (!profile?.id) return;
     
-    const { data: patientData } = await supabase
-      .from('patients')
-      .select('id')
-      .eq('profile_id', profile.id)
-      .single();
+    try {
+      const { data: patientData } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('profile_id', profile.id)
+        .single();
 
-    if (patientData) {
-      const { data: appointmentsData } = await supabase
-        .from('appointments')
-        .select(`
-          *,
-          doctors (
-            id,
-            specialty,
-            profiles (
-              first_name,
-              last_name
+      let allBookings: any[] = [];
+
+      // Fetch real appointments from database
+      if (patientData) {
+        const { data: appointmentsData } = await supabase
+          .from('appointments')
+          .select(`
+            *,
+            doctors (
+              id,
+              specialty,
+              profiles (
+                first_name,
+                last_name
+              )
             )
-          )
-        `)
-        .eq('patient_id', patientData.id)
-        .order('appointment_date', { ascending: true });
+          `)
+          .eq('patient_id', patientData.id)
+          .order('appointment_date', { ascending: true });
 
-      setBookings(appointmentsData || []);
+        allBookings = appointmentsData || [];
+      }
+
+      // Add demo appointments from localStorage
+      const demoAppointments = JSON.parse(localStorage.getItem('demoAppointments') || '[]');
+      const formattedDemoAppointments = demoAppointments.map((demo: any) => ({
+        id: demo.id,
+        appointment_date: demo.appointment_date,
+        start_time: demo.start_time,
+        service_type: demo.service_type,
+        status: demo.status,
+        fee: demo.fee,
+        notes: null,
+        doctors: {
+          id: 'demo',
+          specialty: demo.specialty,
+          profiles: {
+            first_name: demo.doctor_name.replace('Dr. ', '').split(' ')[0],
+            last_name: demo.doctor_name.replace('Dr. ', '').split(' ')[1] || ''
+          }
+        },
+        is_demo: true
+      }));
+
+      // Combine and sort all appointments
+      allBookings = [...allBookings, ...formattedDemoAppointments].sort((a, b) => 
+        new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime()
+      );
+
+      setBookings(allBookings);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      // If there's an error, still show demo appointments
+      const demoAppointments = JSON.parse(localStorage.getItem('demoAppointments') || '[]');
+      const formattedDemoAppointments = demoAppointments.map((demo: any) => ({
+        id: demo.id,
+        appointment_date: demo.appointment_date,
+        start_time: demo.start_time,
+        service_type: demo.service_type,
+        status: demo.status,
+        fee: demo.fee,
+        notes: null,
+        doctors: {
+          id: 'demo',
+          specialty: demo.specialty,
+          profiles: {
+            first_name: demo.doctor_name.replace('Dr. ', '').split(' ')[0],
+            last_name: demo.doctor_name.replace('Dr. ', '').split(' ')[1] || ''
+          }
+        },
+        is_demo: true
+      }));
+      
+      setBookings(formattedDemoAppointments);
     }
   };
 
@@ -274,49 +331,109 @@ export default function Account() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-primary" />
-                  Manage Bookings
+                  My Appointments
                 </CardTitle>
                 <CardDescription>
-                  View and manage your upcoming appointments.
+                  View and manage your upcoming appointments and medical consultations.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {bookings.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No bookings found.</p>
+                  <div className="text-center py-16">
+                    <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Calendar className="w-12 h-12 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No appointments yet</h3>
+                    <p className="text-muted-foreground mb-6">Schedule your first appointment with our expert medical team.</p>
+                    <Button asChild className="btn-modern">
+                      <a href="/booking">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Book Appointment
+                      </a>
+                    </Button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                     {bookings.map((booking) => (
-                       <div
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        You have {bookings.length} appointment{bookings.length !== 1 ? 's' : ''}
+                      </p>
+                      <Button asChild variant="outline" size="sm">
+                        <a href="/booking">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Book New
+                        </a>
+                      </Button>
+                    </div>
+                    
+                    {bookings.map((booking) => (
+                       <Card
                          key={booking.id}
-                         className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-4 border border-border rounded-lg"
+                         className="modern-card hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary"
                        >
-                         <div>
-                           <p className="font-semibold">{booking.service_type || 'General Consultation'}</p>
-                           <Badge variant="secondary" className="mt-1">{booking.status}</Badge>
-                         </div>
-                         <div className="text-muted-foreground">
-                           {new Date(booking.appointment_date).toLocaleDateString('en-US', { 
-                             weekday: 'long', 
-                             year: 'numeric', 
-                             month: 'short', 
-                             day: 'numeric' 
-                           })} @ {booking.start_time}
-                         </div>
-                         <div className="text-muted-foreground">
-                           Dr. {booking.doctors?.profiles?.first_name} {booking.doctors?.profiles?.last_name}
-                         </div>
-                         <div className="flex gap-2">
-                           <Button variant="outline" size="sm">
-                             Reschedule
-                           </Button>
-                           <Button variant="destructive" size="sm">
-                             Cancel
-                           </Button>
-                         </div>
-                       </div>
+                         <CardContent className="p-6">
+                           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                             <div className="space-y-2">
+                               <h4 className="font-semibold text-lg">{booking.service_type || 'General Consultation'}</h4>
+                               <Badge 
+                                 variant={booking.status === 'scheduled' ? 'default' : booking.status === 'completed' ? 'secondary' : 'destructive'} 
+                                 className="w-fit"
+                               >
+                                 {booking.status === 'scheduled' ? '🕒 Scheduled' : 
+                                  booking.status === 'completed' ? '✅ Completed' : 
+                                  booking.status === 'cancelled' ? '❌ Cancelled' : booking.status}
+                               </Badge>
+                               {booking.fee && (
+                                 <p className="text-sm text-muted-foreground">Fee: ₹{booking.fee}</p>
+                               )}
+                             </div>
+                             
+                             <div className="space-y-1">
+                               <p className="font-medium text-primary">
+                                 📅 {new Date(booking.appointment_date).toLocaleDateString('en-US', { 
+                                   weekday: 'long', 
+                                   year: 'numeric', 
+                                   month: 'short', 
+                                   day: 'numeric' 
+                                 })}
+                               </p>
+                               <p className="text-sm text-muted-foreground">
+                                 🕐 {booking.start_time} - {booking.end_time || 'TBD'}
+                               </p>
+                             </div>
+                             
+                             <div className="space-y-1">
+                               <p className="font-medium">
+                                 👨‍⚕️ Dr. {booking.doctors?.profiles?.first_name} {booking.doctors?.profiles?.last_name}
+                               </p>
+                               <p className="text-sm text-muted-foreground">
+                                 {booking.doctors?.specialty}
+                               </p>
+                             </div>
+                             
+                             <div className="flex flex-col gap-2 md:items-end">
+                               {booking.status === 'scheduled' && (
+                                 <>
+                                   <Button variant="outline" size="sm" className="w-full md:w-auto">
+                                     📝 Reschedule
+                                   </Button>
+                                   <Button variant="destructive" size="sm" className="w-full md:w-auto">
+                                     ❌ Cancel
+                                   </Button>
+                                 </>
+                               )}
+                               {booking.status === 'completed' && (
+                                 <Button variant="outline" size="sm" className="w-full md:w-auto">
+                                   📄 View Report
+                                 </Button>
+                               )}
+                               <p className="text-xs text-muted-foreground">
+                                 ID: #{booking.id.slice(0, 8)}
+                               </p>
+                             </div>
+                           </div>
+                         </CardContent>
+                       </Card>
                      ))}
                   </div>
                 )}
