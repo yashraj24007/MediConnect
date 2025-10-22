@@ -1,10 +1,12 @@
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { ShieldAlert, Home, LogOut } from 'lucide-react'
 
 export default function Unauthorized() {
   const navigate = useNavigate()
-  const { signOut } = useAuth()
+  const { signOut, profile } = useAuth()
 
   const handleSignOut = async () => {
     await signOut()
@@ -12,24 +14,44 @@ export default function Unauthorized() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-destructive/10 to-destructive/5">
-      <div className="text-center space-y-6 p-8">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold text-destructive">Access Denied</h1>
-          <p className="text-lg text-muted-foreground">
-            You don't have permission to access this page.
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+      <Card className="max-w-md w-full">
+        <CardHeader className="text-center space-y-4">
+          <div className="flex justify-center">
+            <div className="p-4 bg-destructive/10 rounded-full">
+              <ShieldAlert className="w-12 h-12 text-destructive" />
+            </div>
+          </div>
+          <div>
+            <CardTitle className="text-2xl text-destructive">Access Denied</CardTitle>
+            <CardDescription className="text-base mt-2">
+              {profile?.role === 'patient' 
+                ? "This is a doctor-only area. Patients cannot access the doctor portal."
+                : "You don't have permission to access this page."
+              }
+            </CardDescription>
+          </div>
+        </CardHeader>
         
-        <div className="space-y-4">
-          <Button onClick={() => navigate('/')} variant="outline">
-            Go Home
+        <CardContent className="space-y-3">
+          <Button 
+            onClick={() => navigate('/')} 
+            variant="outline" 
+            className="w-full"
+          >
+            <Home className="w-4 h-4 mr-2" />
+            Go to Home
           </Button>
-          <Button onClick={handleSignOut} variant="destructive">
+          <Button 
+            onClick={handleSignOut} 
+            variant="destructive" 
+            className="w-full"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
             Sign Out
           </Button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

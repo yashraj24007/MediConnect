@@ -16,6 +16,7 @@ interface Appointment {
   id: string;
   appointment_date: string;
   start_time: string;
+  end_time?: string;
   service_type?: string;
   status: string;
   fee: number;
@@ -190,15 +191,19 @@ export default function Account() {
       <div className="container mx-auto px-4 lg:px-6">
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold text-primary mb-2">
-            Account Settings
+            My Appointments
           </h1>
           <p className="text-muted-foreground">
-            Manage your profile, bookings, and preferences.
+            View and manage your upcoming appointments and medical consultations.
           </p>
         </div>
 
-        <Tabs defaultValue="personal" className="space-y-6">
+        <Tabs defaultValue="bookings" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="bookings" className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              <span className="hidden sm:inline">Bookings</span>
+            </TabsTrigger>
             <TabsTrigger value="personal" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               <span className="hidden sm:inline">Personal</span>
@@ -206,10 +211,6 @@ export default function Account() {
             <TabsTrigger value="wallet" className="flex items-center gap-2">
               <Wallet className="w-4 h-4" />
               <span className="hidden sm:inline">Wallet</span>
-            </TabsTrigger>
-            <TabsTrigger value="bookings" className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span className="hidden sm:inline">Bookings</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />

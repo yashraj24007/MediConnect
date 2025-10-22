@@ -101,9 +101,9 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-slate-700 dark:text-slate-300 hover:text-accent transition-colors hover:translate-x-1 inline-block">
+                <Link to="/ai/medication-reminders" className="text-slate-700 dark:text-slate-300 hover:text-accent transition-colors hover:translate-x-1 inline-block">
                   Medication Reminders
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -115,29 +115,29 @@ export const Footer = () => {
             </h4>
             <ul className="space-y-1.5 text-sm">
               <li>
-                <Link to="/doctor" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
-                  Doctor Dashboard
+                <Link to="/auth" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
+                  Doctor Login
                 </Link>
               </li>
               <li>
-                <Link to="/doctor#patients" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
-                  Patient Management
+                <Link to="/about#doctors" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
+                  Join as Doctor
                 </Link>
               </li>
               <li>
-                <Link to="/doctor#schedule" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
-                  Schedule Management
+                <Link to="/help" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
+                  Doctor Resources
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
-                  Patient Reports
-                </a>
+                <Link to="/about#features" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
+                  Platform Features
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
-                  Telemedicine
-                </a>
+                <Link to="/help" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
+                  Support for Doctors
+                </Link>
               </li>
             </ul>
           </div>
@@ -149,14 +149,14 @@ export const Footer = () => {
             </h4>
             <ul className="space-y-1.5 text-sm">
               <li>
-                <a href="#" className="text-slate-700 dark:text-slate-300 hover:text-orange-400 transition-colors hover:translate-x-1 inline-block">
+                <Link to="/help" className="text-slate-700 dark:text-slate-300 hover:text-orange-400 transition-colors hover:translate-x-1 inline-block">
                   Help Center
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-slate-700 dark:text-slate-300 hover:text-orange-400 transition-colors hover:translate-x-1 inline-block">
+                <Link to="/faqs" className="text-slate-700 dark:text-slate-300 hover:text-orange-400 transition-colors hover:translate-x-1 inline-block">
                   FAQs
-                </a>
+                </Link>
               </li>
               <li>
                 <Link to="/members" className="text-slate-700 dark:text-slate-300 hover:text-orange-400 transition-colors hover:translate-x-1 inline-block">
@@ -169,9 +169,9 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-slate-700 dark:text-slate-300 hover:text-orange-400 transition-colors hover:translate-x-1 inline-block">
+                <Link to="/privacy" className="text-slate-700 dark:text-slate-300 hover:text-orange-400 transition-colors hover:translate-x-1 inline-block">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

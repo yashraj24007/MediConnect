@@ -28,6 +28,12 @@ import HealthInsights from "./pages/HealthInsights";
 import About from "./pages/About";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
+import HelpCenter from "./pages/HelpCenter";
+import FAQs from "./pages/FAQs";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import MedicationReminders from "./pages/MedicationReminders";
+import PatientReports from "./pages/PatientReports";
+import Telemedicine from "./pages/Telemedicine";
 
 const queryClient = new QueryClient();
 
@@ -182,9 +188,53 @@ function AppRoutes() {
         
         {/* Role-specific dashboards */}
         <Route path="/doctor" element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['doctor']}>
             <Layout>
               <Doctor />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        {/* Support Pages */}
+        <Route path="/help" element={
+          <Layout>
+            <HelpCenter />
+          </Layout>
+        } />
+        
+        <Route path="/faqs" element={
+          <Layout>
+            <FAQs />
+          </Layout>
+        } />
+        
+        <Route path="/privacy" element={
+          <Layout>
+            <PrivacyPolicy />
+          </Layout>
+        } />
+        
+        {/* Additional AI Features */}
+        <Route path="/ai/medication-reminders" element={
+          <Layout>
+            <MedicationReminders />
+          </Layout>
+        } />
+        
+        {/* Doctor Features */}
+        <Route path="/doctor/reports" element={
+          <ProtectedRoute allowedRoles={['doctor']}>
+            <Layout>
+              <PatientReports />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        {/* Telemedicine */}
+        <Route path="/telemedicine" element={
+          <ProtectedRoute allowedRoles={['patient', 'doctor']}>
+            <Layout>
+              <Telemedicine />
             </Layout>
           </ProtectedRoute>
         } />

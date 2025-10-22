@@ -79,32 +79,20 @@ export const Header = () => {
       ];
     }
 
-    const authenticatedLinks = [
-      ...commonLinks,
-      { name: "Members", href: "/members" },
-    ];
-
-    if (!profile) return authenticatedLinks;
+    if (!profile) return commonLinks;
 
     switch (profile.role) {
       case 'doctor':
         return [
           { name: "Dashboard", href: "/doctor" },
-          ...authenticatedLinks,
-          { name: "My Patients", href: "/doctor#patients" },
-          { name: "Schedule", href: "/doctor#schedule" },
         ];
       case 'patient':
         return [
-          ...authenticatedLinks,
-          { name: "Find Doctors", href: "/doctors" },
-          { name: "My Appointments", href: "/account" },
-          { name: "Health Records", href: "/patient-info" },
-          { name: "File Share", href: "/file-share" },
-          { name: "Book Appointment", href: "/booking" },
+          ...commonLinks,
+          { name: "About", href: "/about" },
         ];
       default:
-        return authenticatedLinks;
+        return commonLinks;
     }
   };
 
@@ -240,45 +228,47 @@ export const Header = () => {
             </Link>
           ))}
           
-          {/* AI Services Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className={cn(
-                    "font-semibold transition-colors hover:text-primary hover:bg-transparent p-0 h-auto",
-                    location.pathname.startsWith('/ai') 
-                      ? "text-primary dark:text-primary-light" 
-                      : "text-slate-800 dark:text-slate-200"
-                  )}
-              >
-                AI Services
-                <ChevronDown className="w-4 h-4 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-80 p-2">
-              {aiServicesMenu.map((service, index) => (
-                <DropdownMenuItem key={index} asChild className="p-0">
-                  <Link
-                    to={service.href}
-                    className="flex items-center gap-4 p-3 rounded-lg hover:bg-accent cursor-pointer"
-                  >
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${service.gradient} flex items-center justify-center flex-shrink-0`}>
-                      <service.icon className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-semibold text-sm text-foreground">
-                        {service.name}
+          {/* AI Services Dropdown - Only for non-doctors */}
+          {profile?.role !== 'doctor' && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className={cn(
+                      "font-semibold transition-colors hover:text-primary hover:bg-transparent p-0 h-auto",
+                      location.pathname.startsWith('/ai') 
+                        ? "text-primary dark:text-primary-light" 
+                        : "text-slate-800 dark:text-slate-200"
+                    )}
+                >
+                  AI Services
+                  <ChevronDown className="w-4 h-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-80 p-2">
+                {aiServicesMenu.map((service, index) => (
+                  <DropdownMenuItem key={index} asChild className="p-0">
+                    <Link
+                      to={service.href}
+                      className="flex items-center gap-4 p-3 rounded-lg hover:bg-accent cursor-pointer"
+                    >
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${service.gradient} flex items-center justify-center flex-shrink-0`}>
+                        <service.icon className="w-5 h-5 text-white" />
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {service.description}
+                      <div className="flex-1">
+                        <div className="font-semibold text-sm text-foreground">
+                          {service.name}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {service.description}
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           
             {navigation.slice(1).map((item) => (
             <Link
@@ -473,49 +463,51 @@ export const Header = () => {
               </Link>
             ))}
             
-            {/* AI Services Expandable Section */}
-            <div>
-              <button
-                onClick={() => setMobileAIMenuOpen(!mobileAIMenuOpen)}
-                className={cn(
-                  "w-full flex items-center justify-between py-3 px-4 rounded-lg font-medium transition-all duration-300",
-                  location.pathname.startsWith('/ai')
-                    ? "text-primary bg-primary/10 border-l-4 border-primary"
-                    : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+            {/* AI Services Expandable Section - Only for non-doctors */}
+            {profile?.role !== 'doctor' && (
+              <div>
+                <button
+                  onClick={() => setMobileAIMenuOpen(!mobileAIMenuOpen)}
+                  className={cn(
+                    "w-full flex items-center justify-between py-3 px-4 rounded-lg font-medium transition-all duration-300",
+                    location.pathname.startsWith('/ai')
+                      ? "text-primary bg-primary/10 border-l-4 border-primary"
+                      : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                  )}
+                >
+                  <span>AI Services</span>
+                  <ChevronDown className={cn(
+                    "w-4 h-4 transition-transform duration-200",
+                    mobileAIMenuOpen && "rotate-180"
+                  )} />
+                </button>
+                
+                {mobileAIMenuOpen && (
+                  <div className="ml-4 mt-2 space-y-1">
+                    {aiServicesMenu.map((service, index) => (
+                      <Link
+                        key={index}
+                        to={service.href}
+                        className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-accent transition-colors"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center flex-shrink-0`}>
+                          <service.icon className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm text-foreground">
+                            {service.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {service.description}
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 )}
-              >
-                <span>AI Services</span>
-                <ChevronDown className={cn(
-                  "w-4 h-4 transition-transform duration-200",
-                  mobileAIMenuOpen && "rotate-180"
-                )} />
-              </button>
-              
-              {mobileAIMenuOpen && (
-                <div className="ml-4 mt-2 space-y-1">
-                  {aiServicesMenu.map((service, index) => (
-                    <Link
-                      key={index}
-                      to={service.href}
-                      className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-accent transition-colors"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center flex-shrink-0`}>
-                        <service.icon className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-sm text-foreground">
-                          {service.name}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {service.description}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+              </div>
+            )}
             
             {/* Rest of navigation items */}
             {navigation.slice(1).map((item) => (

@@ -100,7 +100,7 @@ I'm currently unable to analyze your symptoms using AI, but I can provide genera
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/3 via-background to-accent/3">
       {/* Hero Section - Modern & Appealing */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden py-5">
         {/* Background Image with Enhanced Overlay */}
         <div 
           className="absolute inset-0 bg-cover bg-center transition-all duration-700"
@@ -120,56 +120,57 @@ I'm currently unable to analyze your symptoms using AI, but I can provide genera
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 text-center max-w-6xl mx-auto px-6">
+        <div className="relative z-10 text-center max-w-6xl mx-auto px-6 py-16">
           <div className="space-y-8 animate-slideUpFade">
             {/* Hero Badge */}
-            <div className="inline-flex items-center px-6 py-3 rounded-full glass-card mb-8">
-              <Sparkles className="w-5 h-5 mr-2 text-accent animate-pulse" />
-              <span className="text-sm font-semibold text-white/95">AI Healthcare Platform</span>
+            <div className="inline-flex items-center px-6 py-3 rounded-full glass-card mb-6">
+              <span className="text-2xl mr-2 animate-bounce">✨</span>
+              <Sparkles className="w-5 h-5 mr-2 text-yellow-300 animate-pulse" />
+              <span className="text-sm font-semibold text-white/95">🤖 AI Healthcare Platform</span>
             </div>
             
             {/* Main Heading */}
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight drop-shadow-2xl tracking-tight">
-              <span className="inline-block bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-400 bg-clip-text text-transparent font-black animate-gradient">
-                Smart Healthcare,{" "}
+              <span className="inline-block bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300 bg-clip-text text-transparent font-black animate-gradient">
+                Smart Healthcare 💊,{" "}
               </span>
-              <span className="inline-block bg-gradient-to-r from-emerald-400 via-green-300 to-lime-400 bg-clip-text text-transparent font-black animate-gradient animation-delay-150">
-                Simplified
+              <span className="inline-block bg-gradient-to-r from-green-300 via-emerald-300 to-teal-300 bg-clip-text text-transparent font-black animate-gradient animation-delay-150">
+                Simplified ✨
               </span>
             </h1>
             
             {/* Subheading */}
             <p className="text-2xl md:text-3xl font-medium text-white/95 max-w-4xl mx-auto leading-relaxed drop-shadow-lg">
-              AI-Powered Health Solutions at Your Service
+              🚀 AI-Powered Health Solutions at Your Service 🏥
             </p>
             
             {/* Description */}
-            <p className="text-lg text-white/85 max-w-3xl mx-auto leading-relaxed mb-12">
-              Get instant AI health consultations, manage records effortlessly, and connect with specialists—all in one secure platform.
+            <p className="text-lg text-white/85 max-w-3xl mx-auto leading-relaxed mb-8">
+              Get instant AI health consultations 🩺, manage records effortlessly 📋, and connect with specialists 👨‍⚕️—all in one secure platform 🔒.
             </p>
             
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 pb-8">
               <Button 
                 asChild 
                 variant="default"
                 size="lg" 
-                className="btn-modern bg-accent hover:bg-accent/90 text-accent-foreground border-2 border-accent/50 text-md px-6 py-2"
+                className="btn-modern bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-2 border-emerald-400/50 text-md px-8 py-3 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
               >
                 <Link to="/booking">
-                  <Calendar className="w-6 h-6 mr-3" />
-                  Book Appointment Now
+                  <Calendar className="w-6 h-6 mr-2" />
+                  📅 Book Appointment Now
                 </Link>
               </Button>
               <Button 
                 asChild 
                 variant="outline" 
                 size="lg" 
-                className="btn-modern bg-white/20 dark:bg-white/10 border-2 border-white/60 dark:border-white/40 text-white hover:bg-white/30 dark:hover:bg-white/20 hover:text-white hover:border-white/80 dark:hover:border-white/60 backdrop-blur-md text-md px-6 py-2 shadow-lg"
+                className="btn-modern bg-white/20 dark:bg-white/10 border-2 border-white/60 dark:border-white/40 text-white hover:bg-white/30 dark:hover:bg-white/20 hover:text-white hover:border-white/80 dark:hover:border-white/60 backdrop-blur-md text-md px-8 py-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
               >
                 <Link to="/about">
-                  <Stethoscope className="w-6 h-6 mr-3" />
-                  Learn More
+                  <Stethoscope className="w-6 h-6 mr-2" />
+                  🔍 Learn More
                 </Link>
               </Button>
             </div>

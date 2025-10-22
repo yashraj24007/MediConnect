@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { useLocation } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -170,6 +171,8 @@ interface Prescription {
 }
 
 export default function Doctor() {
+  const location = useLocation()
+  const [activeTab, setActiveTab] = useState("dashboard")
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([])
   const [doctorInfo, setDoctorInfo] = useState<DoctorInfo | null>(null)
@@ -234,6 +237,14 @@ export default function Doctor() {
   
   const { profile } = useAuth()
   const { toast } = useToast()
+
+  // Handle hash navigation
+  useEffect(() => {
+    const hash = location.hash.replace('#', '')
+    if (hash && ['dashboard', 'appointments', 'patients', 'schedule', 'consultations', 'profile'].includes(hash)) {
+      setActiveTab(hash)
+    }
+  }, [location.hash])
 
   const fetchDoctorData = async () => {
     if (!profile) return
@@ -923,7 +934,7 @@ export default function Doctor() {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="dashboard" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
