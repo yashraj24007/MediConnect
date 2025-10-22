@@ -30,7 +30,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Rajesh Kumar is a leading interventional cardiologist with extensive experience in complex cardiac procedures. He has performed over 5000 successful angioplasties and cardiac interventions.",
     expertise: ["Angioplasty", "Cardiac Catheterization", "Pacemaker Implantation", "Heart Attack Treatment", "Preventive Cardiology"],
-    consultationFee: 0,
+    consultationFee: 1000,
     availability: {
       "Monday": "9:00 AM - 1:00 PM",
       "Tuesday": "9:00 AM - 1:00 PM", 
@@ -53,7 +53,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Priya Sharma is a renowned gynecologist specializing in high-risk pregnancies and minimally invasive gynecological procedures. She has helped thousands of women with their reproductive health needs.",
     expertise: ["High-Risk Pregnancy", "Laparoscopic Surgery", "Infertility Treatment", "Menopause Management", "Gynecological Oncology"],
-    consultationFee: 0,
+    consultationFee: 800,
     availability: {
       "Monday": "10:00 AM - 2:00 PM",
       "Tuesday": "10:00 AM - 2:00 PM",
@@ -76,7 +76,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Anil Reddy is a distinguished orthopedic surgeon known for his expertise in joint replacement surgeries and sports medicine. He has successfully performed over 3000 joint replacement procedures.",
     expertise: ["Joint Replacement", "Sports Medicine", "Arthroscopy", "Spine Surgery", "Trauma Surgery"],
-    consultationFee: 0,
+    consultationFee: 900,
     availability: {
       "Monday": "8:00 AM - 12:00 PM",
       "Tuesday": "8:00 AM - 12:00 PM",
@@ -99,7 +99,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg", 
     about: "Dr. Meena Rao is a compassionate pediatrician with special interest in newborn care and childhood development. She is known for her gentle approach with children and comprehensive care.",
     expertise: ["Newborn Care", "Vaccination", "Growth & Development", "Childhood Nutrition", "Pediatric Infections"],
-    consultationFee: 0,
+    consultationFee: 600,
     availability: {
       "Monday": "9:00 AM - 1:00 PM, 5:00 PM - 8:00 PM",
       "Tuesday": "9:00 AM - 1:00 PM, 5:00 PM - 8:00 PM",
@@ -122,7 +122,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Suresh Gupta is an experienced neurologist specializing in stroke management, epilepsy, and movement disorders. He has been instrumental in establishing stroke protocols in multiple hospitals.",
     expertise: ["Stroke Management", "Epilepsy Treatment", "Movement Disorders", "Headache Treatment", "Neurological Rehabilitation"],
-    consultationFee: 0,
+    consultationFee: 1200,
     availability: {
       "Monday": "10:00 AM - 2:00 PM",
       "Tuesday": "10:00 AM - 2:00 PM",
@@ -145,7 +145,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Kavitha Nair is a skilled dermatologist with expertise in both medical and cosmetic dermatology. She is known for her innovative treatments for skin conditions and anti-aging procedures.",
     expertise: ["Acne Treatment", "Psoriasis Management", "Cosmetic Procedures", "Hair Loss Treatment", "Skin Cancer Screening"],
-    consultationFee: 0,
+    consultationFee: 700,
     availability: {
       "Monday": "2:00 PM - 6:00 PM",
       "Tuesday": "2:00 PM - 6:00 PM", 
@@ -168,7 +168,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Ramesh Babu is a leading gastroenterologist in Hyderabad with extensive experience in liver diseases and advanced endoscopic procedures. He has performed over 10,000 endoscopic procedures.",
     expertise: ["Liver Disease", "Endoscopy", "Colonoscopy", "IBD Treatment", "Pancreatic Disorders"],
-    consultationFee: 0,
+    consultationFee: 950,
     availability: {
       "Monday": "9:00 AM - 1:00 PM",
       "Tuesday": "9:00 AM - 1:00 PM",
@@ -191,7 +191,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Lakshmi Devi is a renowned pulmonologist specializing in respiratory diseases, sleep disorders, and critical care. She has been at the forefront of COVID-19 treatment in Hyderabad.",
     expertise: ["Asthma Treatment", "COPD Management", "Sleep Disorders", "Lung Cancer", "Respiratory Infections"],
-    consultationFee: 0,
+    consultationFee: 850,
     availability: {
       "Monday": "10:00 AM - 2:00 PM",
       "Tuesday": "10:00 AM - 2:00 PM",
@@ -214,7 +214,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Venkat Reddy is a distinguished endocrinologist with expertise in diabetes management, thyroid disorders, and hormonal imbalances. He has helped thousands of patients achieve better metabolic health.",
     expertise: ["Diabetes Management", "Thyroid Disorders", "PCOS Treatment", "Obesity Management", "Hormone Therapy"],
-    consultationFee: 0,
+    consultationFee: 800,
     availability: {
       "Monday": "9:00 AM - 1:00 PM",
       "Tuesday": "9:00 AM - 1:00 PM",
@@ -237,7 +237,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Sridevi Patel is a compassionate psychiatrist specializing in anxiety disorders, depression, and child mental health. She believes in holistic treatment approaches combining therapy and medication.",
     expertise: ["Depression Treatment", "Anxiety Disorders", "Child Psychiatry", "Addiction Medicine", "Couple Therapy"],
-    consultationFee: 0,
+    consultationFee: 900,
     availability: {
       "Monday": "10:00 AM - 2:00 PM, 4:00 PM - 7:00 PM",
       "Tuesday": "10:00 AM - 2:00 PM, 4:00 PM - 7:00 PM",
@@ -260,7 +260,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Krishna Murthy is a leading medical oncologist with extensive experience in cancer treatment and research. He has been involved in numerous clinical trials and has a compassionate approach to cancer care.",
     expertise: ["Breast Cancer", "Lung Cancer", "Blood Cancers", "Chemotherapy", "Immunotherapy"],
-    consultationFee: 0,
+    consultationFee: 1500,
     availability: {
       "Monday": "9:00 AM - 1:00 PM",
       "Tuesday": "9:00 AM - 1:00 PM",
@@ -283,7 +283,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Hari Prasad is a skilled urologist specializing in minimally invasive urological procedures, kidney stone management, and prostate treatments. He has performed over 2000 laparoscopic surgeries.",
     expertise: ["Kidney Stone Treatment", "Prostate Surgery", "Laparoscopic Urology", "Male Infertility", "Urological Cancers"],
-    consultationFee: 0,
+    consultationFee: 900,
     availability: {
       "Monday": "8:00 AM - 12:00 PM",
       "Tuesday": "8:00 AM - 12:00 PM",
@@ -306,7 +306,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Sunitha Reddy is an experienced rheumatologist specializing in autoimmune diseases, arthritis, and joint disorders. She is known for her patient-centric approach and advanced treatment protocols.",
     expertise: ["Rheumatoid Arthritis", "Lupus Treatment", "Osteoarthritis", "Gout Management", "Autoimmune Diseases"],
-    consultationFee: 0,
+    consultationFee: 850,
     availability: {
       "Monday": "10:00 AM - 2:00 PM",
       "Tuesday": "10:00 AM - 2:00 PM",
@@ -329,7 +329,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Mohan Kumar is a renowned ENT specialist with expertise in head and neck surgery, hearing disorders, and sinus treatments. He has pioneered several minimally invasive ENT procedures in Hyderabad.",
     expertise: ["Sinus Surgery", "Hearing Loss Treatment", "Voice Disorders", "Sleep Apnea", "Head & Neck Cancers"],
-    consultationFee: 0,
+    consultationFee: 750,
     availability: {
       "Monday": "9:00 AM - 1:00 PM, 4:00 PM - 7:00 PM",
       "Tuesday": "9:00 AM - 1:00 PM, 4:00 PM - 7:00 PM",
@@ -352,7 +352,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Padma Priya is a skilled radiologist with expertise in diagnostic imaging and interventional radiology procedures. She has been instrumental in early diagnosis of various conditions through advanced imaging techniques.",
     expertise: ["CT Scan Interpretation", "MRI Analysis", "Interventional Procedures", "Mammography", "Ultrasound"],
-    consultationFee: 0,
+    consultationFee: 800,
     availability: {
       "Monday": "8:00 AM - 4:00 PM",
       "Tuesday": "8:00 AM - 4:00 PM",
@@ -375,7 +375,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Arjun Rao is a dedicated general physician providing comprehensive primary care services. He focuses on preventive medicine and managing chronic conditions.",
     expertise: ["Diabetes Management", "Hypertension", "Fever Treatment", "Preventive Care", "Health Checkups"],
-    consultationFee: 0,
+    consultationFee: 500,
     availability: {
       "Monday": "9:00 AM - 2:00 PM, 5:00 PM - 8:00 PM",
       "Tuesday": "9:00 AM - 2:00 PM, 5:00 PM - 8:00 PM",
@@ -398,7 +398,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Nandini Reddy is a skilled orthodontist specializing in dental braces, aligners, and cosmetic dentistry. She has transformed thousands of smiles with her expertise.",
     expertise: ["Braces Treatment", "Invisalign", "Dental Implants", "Root Canal", "Teeth Whitening"],
-    consultationFee: 0,
+    consultationFee: 600,
     availability: {
       "Monday": "10:00 AM - 6:00 PM",
       "Tuesday": "10:00 AM - 6:00 PM",
@@ -421,7 +421,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Vikram Singh is a renowned ophthalmologist specializing in corneal diseases, cataract surgery, and refractive procedures. He has performed over 8000 successful eye surgeries.",
     expertise: ["Cataract Surgery", "LASIK", "Corneal Transplant", "Glaucoma Treatment", "Retinal Diseases"],
-    consultationFee: 0,
+    consultationFee: 1000,
     availability: {
       "Monday": "9:00 AM - 1:00 PM",
       "Tuesday": "9:00 AM - 1:00 PM",
@@ -444,7 +444,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Swathi Menon is an experienced physiotherapist specializing in sports injuries, post-surgical rehabilitation, and pain management through manual therapy.",
     expertise: ["Sports Injury Rehab", "Post-Surgery Care", "Back Pain Treatment", "Joint Mobilization", "Geriatric Physiotherapy"],
-    consultationFee: 0,
+    consultationFee: 400,
     availability: {
       "Monday": "8:00 AM - 12:00 PM, 4:00 PM - 8:00 PM",
       "Tuesday": "8:00 AM - 12:00 PM, 4:00 PM - 8:00 PM",
@@ -467,7 +467,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Karthik Naidu is a leading nephrologist with expertise in kidney disease management, dialysis, and kidney transplantation. He has helped thousands of patients with chronic kidney disease.",
     expertise: ["Chronic Kidney Disease", "Dialysis Management", "Kidney Transplant", "Hypertension", "Electrolyte Disorders"],
-    consultationFee: 0,
+    consultationFee: 1100,
     availability: {
       "Monday": "10:00 AM - 2:00 PM",
       "Tuesday": "10:00 AM - 2:00 PM",
@@ -490,7 +490,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Anjali Desai is a highly skilled dermatologist specializing in acne treatment, anti-aging procedures, and laser treatments. She combines medical expertise with aesthetic sensibilities.",
     expertise: ["Acne Scar Treatment", "Botox & Fillers", "Laser Hair Removal", "Chemical Peels", "Pigmentation Treatment"],
-    consultationFee: 0,
+    consultationFee: 900,
     availability: {
       "Monday": "11:00 AM - 7:00 PM",
       "Tuesday": "11:00 AM - 7:00 PM",
@@ -513,7 +513,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Ramesh Chandra is an expert pulmonologist specializing in respiratory diseases, sleep disorders, and critical care pulmonology. He has extensive experience in managing complex lung conditions.",
     expertise: ["Asthma Treatment", "COPD Management", "TB Treatment", "Sleep Apnea", "Bronchoscopy"],
-    consultationFee: 0,
+    consultationFee: 950,
     availability: {
       "Monday": "9:00 AM - 1:00 PM",
       "Tuesday": "9:00 AM - 1:00 PM",
@@ -536,7 +536,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Shalini Patel is a compassionate pediatrician with special interest in pediatric intensive care and neonatal care. She provides comprehensive healthcare for children from birth to adolescence.",
     expertise: ["Newborn Care", "Child Vaccination", "Growth Monitoring", "Pediatric Emergency", "Childhood Infections"],
-    consultationFee: 0,
+    consultationFee: 650,
     availability: {
       "Monday": "10:00 AM - 2:00 PM, 5:00 PM - 8:00 PM",
       "Tuesday": "10:00 AM - 2:00 PM, 5:00 PM - 8:00 PM",
@@ -559,7 +559,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Aditya Sharma is a skilled interventional cardiologist specializing in complex coronary interventions, structural heart disease, and heart failure management.",
     expertise: ["Angioplasty", "Heart Failure", "Valvular Heart Disease", "Cardiac CT", "Preventive Cardiology"],
-    consultationFee: 0,
+    consultationFee: 1000,
     availability: {
       "Monday": "9:00 AM - 1:00 PM",
       "Tuesday": "9:00 AM - 1:00 PM",
@@ -582,7 +582,7 @@ export const doctors: Doctor[] = [
     image: "/placeholder.svg",
     about: "Dr. Deepa Krishnan is a compassionate psychiatrist specializing in mood disorders, anxiety, and child mental health. She believes in a holistic approach to mental wellness.",
     expertise: ["Depression", "Anxiety Disorders", "OCD Treatment", "Child Psychology", "Addiction Treatment"],
-    consultationFee: 0,
+    consultationFee: 800,
     availability: {
       "Monday": "11:00 AM - 3:00 PM, 5:00 PM - 8:00 PM",
       "Tuesday": "11:00 AM - 3:00 PM, 5:00 PM - 8:00 PM",
