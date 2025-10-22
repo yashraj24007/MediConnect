@@ -12,6 +12,7 @@ import { Doctor } from "@/data/doctors";
 export default function Doctors() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
+  const [selectedLocation, setSelectedLocation] = useState("all");
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,14 +38,24 @@ export default function Doctors() {
 
   const specialties = ["all", ...new Set(doctors.map(doc => doc.specialty))];
 
+  // Extract locations from hospital names (e.g., "Apollo Hospitals Jubilee Hills" => "Jubilee Hills")
+  const extractLocationFromHospital = (hospital: string): string => {
+    const areas = ['Jubilee Hills', 'Banjara Hills', 'Gachibowli', 'Secunderabad', 'Malakpet', 'Kondapur', 'Hi-Tech City', 'Ameerpet'];
+    const found = areas.find(area => hospital.includes(area));
+    return found || 'Other';
+  };
+
+  const locations = ["all", ...new Set(doctors.map(doc => extractLocationFromHospital(doc.hospital)))];
+
   const filteredDoctors = doctors.filter(doctor => {
     const matchesSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doctor.hospital.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesSpecialty = selectedSpecialty === "all" || doctor.specialty === selectedSpecialty;
+    const matchesLocation = selectedLocation === "all" || extractLocationFromHospital(doctor.hospital) === selectedLocation;
     
-    return matchesSearch && matchesSpecialty;
+    return matchesSearch && matchesSpecialty && matchesLocation;
   });
 
   if (loading) {
@@ -81,8 +92,8 @@ export default function Doctors() {
             Connect with experienced medical professionals across various specialties in Hyderabad's top hospitals.
           </p>
           
-          {/* Search and Filter */}
-          <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-4">
+          {/* Search and Filters */}
+          <div className="max-w-4xl mx-auto grid md:grid-cols-4 gap-4">
             <div className="relative md:col-span-2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
@@ -101,6 +112,19 @@ export default function Doctors() {
                 {specialties.map((specialty) => (
                   <SelectItem key={specialty} value={specialty}>
                     {specialty === "all" ? "All Specialties" : specialty}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+              <SelectTrigger>
+                <MapPin className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filter by location" />
+              </SelectTrigger>
+              <SelectContent>
+                {locations.map((location) => (
+                  <SelectItem key={location} value={location}>
+                    {location === "all" ? "All Locations" : location}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -216,6 +240,7 @@ export default function Doctors() {
               onClick={() => {
                 setSearchTerm("");
                 setSelectedSpecialty("all");
+                setSelectedLocation("all");
               }}
               variant="outline"
               className="mt-4"

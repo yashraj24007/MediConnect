@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, Globe, Menu, X, Heart, Stethoscope, Calendar, FileText, MessageSquare } from "lucide-react";
+import { Bell, Globe, Menu, X, Heart, Stethoscope, Calendar, FileText, MessageSquare, ChevronDown, FileSearch, Activity, Sparkles, Brain, LogIn, User, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { useTheme } from "@/components/theme-provider";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -18,11 +18,45 @@ import {
 
 export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileAIMenuOpen, setMobileAIMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
+
+  // AI Services menu items
+  const aiServicesMenu = [
+    {
+      name: "AI Health Assistant",
+      description: "Personalized health guidance",
+      href: "/ai/health-assistant",
+      icon: MessageSquare,
+      gradient: "from-blue-500 to-cyan-500"
+    },
+    {
+      name: "Symptom Analyzer",
+      description: "AI-powered symptom checker",
+      href: "/ai/symptom-analyzer",
+      icon: FileSearch,
+      gradient: "from-purple-500 to-pink-500"
+    },
+    {
+      name: "Smart Booking",
+      description: "Intelligent appointment scheduling",
+      href: "/ai/smart-booking",
+      icon: Calendar,
+      gradient: "from-green-500 to-emerald-500"
+    },
+    {
+      name: "Health Insights",
+      description: "Data analytics dashboard",
+      href: "/ai/health-insights",
+      icon: Activity,
+      gradient: "from-orange-500 to-red-500"
+    }
+  ];
 
   const handleSignOut = async () => {
     await signOut();
@@ -38,7 +72,12 @@ export const Header = () => {
       { name: "Home", href: "/" },
     ];
 
-    if (!user) return commonLinks;
+    if (!user) {
+      return [
+        ...commonLinks,
+        { name: "About", href: "/about" },
+      ];
+    }
 
     const authenticatedLinks = [
       ...commonLinks,
@@ -52,11 +91,15 @@ export const Header = () => {
         return [
           { name: "Dashboard", href: "/doctor" },
           ...authenticatedLinks,
+          { name: "My Patients", href: "/doctor#patients" },
+          { name: "Schedule", href: "/doctor#schedule" },
         ];
       case 'patient':
         return [
           ...authenticatedLinks,
+          { name: "Find Doctors", href: "/doctors" },
           { name: "My Appointments", href: "/account" },
+          { name: "Health Records", href: "/patient-info" },
           { name: "File Share", href: "/file-share" },
           { name: "Book Appointment", href: "/booking" },
         ];
@@ -161,33 +204,91 @@ export const Header = () => {
   };
 
   return (
-    <header className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
-      <nav className="container mx-auto px-4 lg:px-6 py-4 flex justify-between items-center">
+    <header className="bg-white/95 dark:bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
+      <nav className="container mx-auto px-4 lg:px-6 py-3 flex justify-between items-center">
         {/* Logo */}
         <Link 
           to="/" 
-          className="flex items-center space-x-3 hover:opacity-80 transition-all duration-300 transform hover:scale-105 group"
+          className="flex items-center space-x-3 hover:opacity-90 transition-all duration-300 transform hover:scale-105 group"
         >
-          <div className="relative">
-            <Heart className="w-8 h-8 text-pink-500 fill-pink-500/20 group-hover:fill-pink-500/40 transition-all duration-300" />
-            <Stethoscope className="w-4 h-4 text-blue-500 absolute -bottom-1 -right-1 group-hover:rotate-12 transition-transform duration-300" />
+          <div className="relative flex-shrink-0">
+            <img 
+              src="/logo.svg" 
+              alt="MediConnect Logo" 
+              className="w-10 h-10 group-hover:rotate-6 transition-transform duration-300"
+            />
           </div>
-          <span className="text-3xl font-extrabold text-foreground tracking-tight">
+          <span className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent tracking-tight">
             MediConnect
           </span>
         </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
-          {navigation.map((item) => (
+          {navigation.slice(0, 1).map((item) => (
             <Link
               key={item.name}
               to={item.href}
               className={cn(
-                "font-semibold transition-colors hover:text-primary-light",
+                "font-semibold transition-colors hover:text-primary",
                 isActiveLink(item.href) 
-                  ? "text-primary-light" 
-                  : "text-muted-foreground"
+                  ? "text-primary dark:text-primary-light" 
+                  : "text-slate-800 dark:text-slate-200"
+              )}
+            >
+              {item.name}
+            </Link>
+          ))}
+          
+          {/* AI Services Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className={cn(
+                    "font-semibold transition-colors hover:text-primary hover:bg-transparent p-0 h-auto",
+                    location.pathname.startsWith('/ai') 
+                      ? "text-primary dark:text-primary-light" 
+                      : "text-slate-800 dark:text-slate-200"
+                  )}
+              >
+                AI Services
+                <ChevronDown className="w-4 h-4 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-80 p-2">
+              {aiServicesMenu.map((service, index) => (
+                <DropdownMenuItem key={index} asChild className="p-0">
+                  <Link
+                    to={service.href}
+                    className="flex items-center gap-4 p-3 rounded-lg hover:bg-accent cursor-pointer"
+                  >
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${service.gradient} flex items-center justify-center flex-shrink-0`}>
+                      <service.icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-sm text-foreground">
+                        {service.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {service.description}
+                      </div>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+            {navigation.slice(1).map((item) => (
+            <Link
+              key={item.name}
+              to={item.href}
+              className={cn(
+                "font-semibold transition-colors hover:text-primary",
+                isActiveLink(item.href) 
+                  ? "text-primary dark:text-primary-light" 
+                  : "text-slate-800 dark:text-slate-200"
               )}
             >
               {item.name}
@@ -197,8 +298,20 @@ export const Header = () => {
 
         {/* Right Side Actions */}
         <div className="flex items-center space-x-4">
-          <ThemeToggle />
-          
+          {/* Theme Toggle Icon */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-300"
+          >
+            {theme === "dark" ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+          </Button>
+
           {/* Notifications Dropdown */}
           {user && (
             <DropdownMenu>
@@ -321,7 +434,8 @@ export const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
+            <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="flex items-center gap-2">
+              <LogIn className="w-4 h-4" />
               Sign In
             </Button>
           )}
@@ -342,7 +456,69 @@ export const Header = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-lg">
           <div className="px-4 py-2 space-y-1">
-            {navigation.map((item) => (
+            {/* First nav item (Home) */}
+            {navigation.slice(0, 1).map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={cn(
+                  "block py-3 px-4 rounded-lg font-medium transition-all duration-300",
+                  isActiveLink(item.href)
+                    ? "text-primary bg-primary/10 border-l-4 border-primary"
+                    : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                )}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
+            ))}
+            
+            {/* AI Services Expandable Section */}
+            <div>
+              <button
+                onClick={() => setMobileAIMenuOpen(!mobileAIMenuOpen)}
+                className={cn(
+                  "w-full flex items-center justify-between py-3 px-4 rounded-lg font-medium transition-all duration-300",
+                  location.pathname.startsWith('/ai')
+                    ? "text-primary bg-primary/10 border-l-4 border-primary"
+                    : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                )}
+              >
+                <span>AI Services</span>
+                <ChevronDown className={cn(
+                  "w-4 h-4 transition-transform duration-200",
+                  mobileAIMenuOpen && "rotate-180"
+                )} />
+              </button>
+              
+              {mobileAIMenuOpen && (
+                <div className="ml-4 mt-2 space-y-1">
+                  {aiServicesMenu.map((service, index) => (
+                    <Link
+                      key={index}
+                      to={service.href}
+                      className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-accent transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center flex-shrink-0`}>
+                        <service.icon className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-sm text-foreground">
+                          {service.name}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {service.description}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Rest of navigation items */}
+            {navigation.slice(1).map((item) => (
               <Link
                 key={item.name}
                 to={item.href}

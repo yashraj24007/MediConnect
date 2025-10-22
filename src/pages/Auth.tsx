@@ -126,7 +126,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-primary">
+          <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold text-primary">
             Welcome to MediConnect
           </CardTitle>
           <CardDescription>

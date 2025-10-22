@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Doctor } from "@/data/doctors";
+import { Doctor, doctors as localDoctors } from "@/data/doctors";
 
 export interface DoctorProfile {
   id: string;
@@ -43,14 +43,22 @@ export class DoctorService {
 
       if (error) {
         console.error('Error fetching doctors:', error);
-        throw error;
+        // Return local doctors data if database fetch fails
+        return localDoctors;
+      }
+
+      // If no data in database, use local doctors
+      if (!data || data.length === 0) {
+        console.log('No doctors in database, using local data');
+        return localDoctors;
       }
 
       // Transform Supabase data to match our Doctor interface
       return this.transformToDoctors(data as any[]);
     } catch (error) {
       console.error('Failed to fetch doctors:', error);
-      return [];
+      // Return local doctors data as fallback
+      return localDoctors;
     }
   }
 

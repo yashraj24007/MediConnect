@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import PatientSummary from '@/components/PatientSummary'
 import { 
   Calendar as CalendarIcon, 
   Users, 
@@ -109,6 +111,8 @@ export default function Doctor() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
+  const [showPatientSummary, setShowPatientSummary] = useState(false)
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
   const { profile } = useAuth()
   const { toast } = useToast()
 
@@ -449,6 +453,17 @@ export default function Doctor() {
                                 {getStatusIcon(appointment.status)}
                                 <span className="ml-1">{appointment.status}</span>
                               </Badge>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedPatientId(appointment.patient.id);
+                                  setShowPatientSummary(true);
+                                }}
+                                title="View Patient Summary"
+                              >
+                                <FileText className="w-4 h-4" />
+                              </Button>
                               {appointment.status === 'pending' && (
                                 <>
                                   <Button size="sm" onClick={() => updateAppointmentStatus(appointment.id, 'confirmed')}>
@@ -615,7 +630,15 @@ export default function Doctor() {
                           <TableCell>₹{appointment.fee}</TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
-                              <Button size="sm" variant="outline">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedPatientId(appointment.patient.id);
+                                  setShowPatientSummary(true);
+                                }}
+                                title="View Patient Summary"
+                              >
                                 <Eye className="w-4 h-4" />
                               </Button>
                               {appointment.status === 'pending' && (
@@ -722,6 +745,21 @@ export default function Doctor() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Patient Summary Dialog */}
+      <Dialog open={showPatientSummary} onOpenChange={setShowPatientSummary}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Patient Summary Report</DialogTitle>
+          </DialogHeader>
+          {selectedPatientId && (
+            <PatientSummary 
+              patientId={selectedPatientId} 
+              onClose={() => setShowPatientSummary(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

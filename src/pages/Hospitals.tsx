@@ -4,19 +4,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { MapPin, Phone, Mail, Bed, Clock, Search } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MapPin, Phone, Mail, Bed, Clock, Search, Filter } from "lucide-react";
 import { hospitals } from "@/data/hospitals";
 
 export default function Hospitals() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("all");
 
-  const filteredHospitals = hospitals.filter(hospital =>
-    hospital.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    hospital.specialties.some(specialty => 
-      specialty.toLowerCase().includes(searchTerm.toLowerCase())
-    ) ||
-    hospital.address.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Extract location from address (e.g., "Jubilee Hills", "Banjara Hills")
+  const extractLocationFromAddress = (address: string): string => {
+    const areas = ['Jubilee Hills', 'Banjara Hills', 'Gachibowli', 'Secunderabad', 'Malakpet', 'Kondapur', 'Begumpet', 'Ameerpet', 'Somajiguda'];
+    const found = areas.find(area => address.includes(area));
+    return found || 'Other';
+  };
+
+  const locations = ["all", ...new Set(hospitals.map(h => extractLocationFromAddress(h.address)))];
+
+  const filteredHospitals = hospitals.filter(hospital => {
+    const matchesSearch = hospital.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      hospital.specialties.some(specialty => 
+        specialty.toLowerCase().includes(searchTerm.toLowerCase())
+      ) ||
+      hospital.address.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesLocation = selectedLocation === "all" || extractLocationFromAddress(hospital.address) === selectedLocation;
+
+    return matchesSearch && matchesLocation;
+  });
 
   return (
     <div className="min-h-screen bg-muted py-12">
@@ -30,15 +45,30 @@ export default function Hospitals() {
             Discover the best healthcare facilities in Hyderabad with world-class medical services and experienced professionals.
           </p>
           
-          {/* Search */}
-          <div className="max-w-md mx-auto relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search hospitals by name, specialty, or location..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          {/* Search and Filter */}
+          <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-4">
+            <div className="relative md:col-span-2">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search hospitals by name, specialty, or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+              <SelectTrigger>
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Filter by location" />
+              </SelectTrigger>
+              <SelectContent>
+                {locations.map((location) => (
+                  <SelectItem key={location} value={location}>
+                    {location === "all" ? "All Locations" : location}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -128,6 +158,16 @@ export default function Hospitals() {
             <p className="text-muted-foreground text-lg">
               No hospitals found matching your search criteria.
             </p>
+            <Button 
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedLocation("all");
+              }}
+              variant="outline"
+              className="mt-4"
+            >
+              Clear Filters
+            </Button>
           </div>
         )}
       </div>

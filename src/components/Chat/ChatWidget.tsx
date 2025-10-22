@@ -241,12 +241,12 @@ export const ChatWidget = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 z-[9999]">
       {/* Chat Window */}
       {isOpen && (
-        <div className="absolute bottom-20 right-0 w-80 md:w-96 bg-card/95 backdrop-blur-lg rounded-xl shadow-2xl border border-border flex flex-col h-[600px]">
+        <div className="absolute bottom-20 right-0 w-80 md:w-96 bg-card/95 backdrop-blur-lg rounded-xl shadow-2xl border border-border flex flex-col h-[600px] animate-in slide-in-from-bottom-4 duration-300">
           {/* Header */}
-          <div className="bg-gradient-to-r from-primary via-primary/90 to-accent text-primary-foreground p-4 rounded-t-xl flex justify-between items-center">
+          <div className="bg-gradient-to-r from-primary via-primary/90 to-accent text-primary-foreground p-4 rounded-t-xl flex justify-between items-center shadow-lg">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-primary-foreground/20 rounded-full flex items-center justify-center">
                 <Sparkles className="w-5 h-5" />

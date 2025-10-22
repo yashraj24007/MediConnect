@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { Layout } from "@/components/Layout/Layout";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -20,6 +21,11 @@ import HospitalProfile from "./pages/HospitalProfile";
 import Doctors from "./pages/Doctors";
 import DoctorProfile from "./pages/DoctorProfile";
 import DoctorManagement from "./pages/DoctorManagement";
+import AIHealthAssistant from "./pages/AIHealthAssistant";
+import SymptomAnalyzer from "./pages/SymptomAnalyzer";
+import SmartBooking from "./pages/SmartBooking";
+import HealthInsights from "./pages/HealthInsights";
+import About from "./pages/About";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 
@@ -53,6 +59,8 @@ function AppRoutes() {
 
   return (
     <BrowserRouter>
+      {/* Force manual scroll restoration so our ScrollToTop can control scroll on navigation/refresh */}
+      <ScrollToTop />
       <Routes>
         {/* Public routes */}
         <Route path="/auth" element={!user ? <Auth /> : <Navigate to={getRoleBasedRedirect()} replace />} />
@@ -62,6 +70,13 @@ function AppRoutes() {
         <Route path="/" element={
           <Layout>
             <Home />
+          </Layout>
+        } />
+        
+        {/* About Page */}
+        <Route path="/about" element={
+          <Layout>
+            <About />
           </Layout>
         } />
         
@@ -87,6 +102,31 @@ function AppRoutes() {
         <Route path="/doctors/:id" element={
           <Layout>
             <DoctorProfile />
+          </Layout>
+        } />
+        
+        {/* AI Services Pages */}
+        <Route path="/ai/health-assistant" element={
+          <Layout>
+            <AIHealthAssistant />
+          </Layout>
+        } />
+        
+        <Route path="/ai/symptom-analyzer" element={
+          <Layout>
+            <SymptomAnalyzer />
+          </Layout>
+        } />
+        
+        <Route path="/ai/smart-booking" element={
+          <Layout>
+            <SmartBooking />
+          </Layout>
+        } />
+        
+        <Route path="/ai/health-insights" element={
+          <Layout>
+            <HealthInsights />
           </Layout>
         } />
         

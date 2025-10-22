@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, Clock, CheckCircle } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,6 +26,7 @@ export default function Booking() {
   const [patientRecord, setPatientRecord] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [availableSlots, setAvailableSlots] = useState<{time: string, available: boolean}[]>([]);
   const [formData, setFormData] = useState({
     firstName: profile?.first_name || "",
     lastName: profile?.last_name || "",
@@ -219,7 +220,95 @@ export default function Booking() {
     }
   };
 
-  const timeSlots = [
+  // Check doctor availability for selected date
+  const checkDoctorAvailability = async (doctorId: string, date: string) => {
+    const selectedDate = new Date(date);
+    const dayOfWeek = selectedDate.getDay();
+    
+    // For now, return default slots since doctor_availability table needs to be migrated
+    // TODO: Uncomment after running the migration
+    /*
+    // Get doctor's availability schedule for the day
+    const { data: availabilityData, error: availError } = await supabase
+      .from('doctor_availability')
+      .select('*')
+      .eq('doctor_id', doctorId)
+      .eq('day_of_week', dayOfWeek)
+      .eq('is_available', true);
+
+    if (availError) {
+      console.error('Error fetching availability:', availError);
+      return generateDefaultSlots();
+    }
+
+    if (!availabilityData || availabilityData.length === 0) {
+      return generateDefaultSlots().map(slot => ({ ...slot, available: false }));
+    }
+    */
+
+    // Get existing appointments for the selected date
+    const { data: appointmentsData } = await supabase
+      .from('appointments')
+      .select('start_time')
+      .eq('doctor_id', doctorId)
+      .eq('appointment_date', date)
+      .eq('status', 'scheduled');
+
+    const bookedTimes = new Set(appointmentsData?.map(apt => apt.start_time) || []);
+    
+    // Generate time slots and mark booked ones as unavailable
+    const slots = generateDefaultSlots();
+    return slots.map(slot => {
+      const timeIn24 = convertTo24Hour(slot.time);
+      const isBooked = bookedTimes.has(timeIn24);
+      
+      // For weekdays (Mon-Fri), all slots are available unless booked
+      // For weekends, mark as unavailable
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      
+      return {
+        ...slot,
+        available: !isWeekend && !isBooked
+      };
+    });
+  };
+
+  const generateDefaultSlots = () => [
+    { time: "09:00 AM", available: true },
+    { time: "10:00 AM", available: true },
+    { time: "11:00 AM", available: true },
+    { time: "12:00 PM", available: true },
+    { time: "02:00 PM", available: true },
+    { time: "03:00 PM", available: true },
+    { time: "04:00 PM", available: true },
+    { time: "05:00 PM", available: true },
+  ];
+
+  const convertTo24Hour = (time12h: string) => {
+    const [time, modifier] = time12h.split(' ');
+    let [hours, minutes] = time.split(':');
+    if (hours === '12') {
+      hours = modifier === 'AM' ? '00' : '12';
+    } else if (modifier === 'PM') {
+      hours = String(parseInt(hours, 10) + 12);
+    }
+    return `${hours.padStart(2, '0')}:${minutes}:00`;
+  };
+
+  // Update time slots when doctor or date changes
+  useEffect(() => {
+    const updateSlots = async () => {
+      if (selectedDoctor && selectedDate) {
+        const slots = await checkDoctorAvailability(selectedDoctor.id, selectedDate);
+        setAvailableSlots(slots);
+      } else {
+        setAvailableSlots(generateDefaultSlots());
+      }
+    };
+    updateSlots();
+  }, [selectedDoctor, selectedDate]);
+
+  const timeSlots = availableSlots.length > 0 ? availableSlots : [
     { time: "09:00 AM", available: true },
     { time: "10:00 AM", available: true },
     { time: "11:00 AM", available: true },
@@ -537,10 +626,18 @@ export default function Booking() {
                         className={`w-full transition-all duration-200 ${
                           slot.available 
                             ? "border-primary/30 text-primary hover:bg-gradient-to-r hover:from-primary hover:to-accent hover:text-primary-foreground hover:shadow-lg" 
-                            : "text-gray-400 cursor-not-allowed opacity-50"
+                            : "text-muted-foreground cursor-not-allowed opacity-60 bg-muted/30"
                         }`}
                       >
-                        {slot.time}
+                        <div className="flex items-center justify-between w-full">
+                          <span>{slot.time}</span>
+                          {!slot.available && (
+                            <span className="flex items-center gap-1 text-xs">
+                              <AlertCircle className="w-3 h-3" />
+                              Not Available
+                            </span>
+                          )}
+                        </div>
                       </Button>
                     ))}
                   </div>

@@ -243,3 +243,22 @@
 .font-body {
     font-family: "Inter", sans-serif;
 }
+
+/* Hero heading gradient animation */
+@keyframes gradient-shift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+}
+
+.animation-delay-150 {
+    animation-delay: 150ms;
+}
