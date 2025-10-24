@@ -1,12 +1,28 @@
-import { FileSearch, Sparkles, Activity, AlertCircle, CheckCircle, ArrowRight, Brain } from "lucide-react";
+import { FileSearch, Sparkles, Activity, AlertCircle, CheckCircle, ArrowRight, Brain, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { GroqChatService } from "@/services/groqService";
+import { useToast } from "@/hooks/use-toast";
+
+interface AnalysisResult {
+  urgency: 'low' | 'medium' | 'high' | 'emergency';
+  possibleConditions: string[];
+  recommendations: string[];
+  specialist: string;
+  nextSteps: string[];
+}
 
 export default function SymptomAnalyzer() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [symptoms, setSymptoms] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [showAnalyzer, setShowAnalyzer] = useState(false);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -14,11 +30,117 @@ export default function SymptomAnalyzer() {
   }, []);
 
   const handleAnalyzeNow = () => {
-    navigate('/');
+    setShowAnalyzer(true);
     setTimeout(() => {
-      const element = document.getElementById('symptom-checker');
+      const element = document.getElementById('symptom-form');
       element?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
+  };
+
+  const handleAnalyzeSymptoms = async () => {
+    if (!symptoms.trim()) {
+      toast({
+        title: "Please describe your symptoms",
+        description: "Enter your symptoms to get an AI analysis",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if API key is configured
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+    if (!apiKey || apiKey === 'your_groq_api_key_here') {
+      toast({
+        title: "⚠️ AI Service Not Configured",
+        description: "Please add your Groq API key to the .env file. Get a free key at console.groq.com/keys",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysis(null);
+
+    try {
+      const prompt = `As a medical AI assistant, analyze the following symptoms and provide a detailed assessment.
+
+Symptoms: ${symptoms}
+
+Provide your response in this JSON format (ensure valid JSON):
+{
+  "urgency": "low",
+  "possibleConditions": ["Common cold", "Seasonal allergy"],
+  "recommendations": ["Get adequate rest", "Stay hydrated", "Monitor temperature"],
+  "specialist": "General Physician",
+  "nextSteps": ["Rest for 24-48 hours", "Take over-the-counter pain relief if needed", "Consult doctor if symptoms worsen"]
+}
+
+Important: 
+- Urgency MUST be one of: low, medium, high, emergency
+- If symptoms indicate immediate danger (chest pain, difficulty breathing, severe bleeding), set urgency to "emergency"
+- Provide 2-4 possible conditions
+- Give 3-5 practical recommendations
+- Suggest appropriate medical specialist
+- Provide 3-4 clear next steps
+- Return ONLY valid JSON, no extra text`;
+
+      const response = await GroqChatService.sendMessage(prompt, []);
+      
+      // Try to extract JSON from response
+      let jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const result = JSON.parse(jsonMatch[0]);
+          
+          // Validate the response structure
+          if (!result.urgency || !result.possibleConditions || !result.recommendations) {
+            throw new Error("Invalid response structure");
+          }
+          
+          setAnalysis(result);
+          
+          if (result.urgency === 'emergency') {
+            toast({
+              title: "⚠️ Urgent Medical Attention Required",
+              description: "Based on your symptoms, please seek immediate medical care or call emergency services.",
+              variant: "destructive"
+            });
+          }
+        } catch (parseError) {
+          console.error("JSON parse error:", parseError);
+          throw new Error("Could not parse AI response");
+        }
+      } else {
+        // If no JSON found, create a basic response
+        console.warn("No JSON in response, creating fallback");
+        setAnalysis({
+          urgency: 'medium',
+          possibleConditions: ["Please consult a healthcare professional for proper diagnosis"],
+          recommendations: ["Seek medical attention", "Monitor your symptoms", "Keep a symptom diary"],
+          specialist: "General Physician",
+          nextSteps: ["Book an appointment with a doctor", "Prepare a list of your symptoms", "Note any triggers or patterns"]
+        });
+      }
+    } catch (error) {
+      console.error("Error analyzing symptoms:", error);
+      toast({
+        title: "Analysis Error",
+        description: "Unable to analyze symptoms. Please try again or consult a healthcare professional directly.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const getUrgencyColor = (urgency: string) => {
+    switch (urgency) {
+      case 'emergency': return 'bg-red-500';
+      case 'high': return 'bg-orange-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'low': return 'bg-green-500';
+      default: return 'bg-gray-500';
+    }
   };
 
   return (
@@ -60,6 +182,187 @@ export default function SymptomAnalyzer() {
           </div>
         </div>
       </section>
+
+      {/* Symptom Analyzer Form */}
+      {showAnalyzer && (
+        <section className="py-16 bg-background/50" id="symptom-form">
+          <div className="container mx-auto px-4 lg:px-6">
+            <div className="max-w-4xl mx-auto">
+              <Card className="border-2 border-purple-500/20">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    <Brain className="w-6 h-6 text-purple-500" />
+                    Describe Your Symptoms
+                  </CardTitle>
+                  <CardDescription>
+                    Be as detailed as possible. Include when symptoms started, severity, and any factors that make them better or worse.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Textarea
+                      placeholder="Example: I've been experiencing a persistent headache for 3 days, mainly on the right side of my head. The pain gets worse in the afternoon and I sometimes feel nauseous..."
+                      className="min-h-[150px] resize-none"
+                      value={symptoms}
+                      onChange={(e) => setSymptoms(e.target.value)}
+                      disabled={isAnalyzing}
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={handleAnalyzeSymptoms}
+                    disabled={isAnalyzing || !symptoms.trim()}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500"
+                    size="lg"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Analyzing Symptoms...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5 mr-2" />
+                        Analyze Symptoms
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Analysis Results */}
+              {analysis && (
+                <div className="mt-8 space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                  {/* Urgency Badge */}
+                  <Card className="border-2">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-3">
+                        <Badge className={`${getUrgencyColor(analysis.urgency)} text-white px-4 py-2 text-lg`}>
+                          {analysis.urgency.toUpperCase()} URGENCY
+                        </Badge>
+                        <span className="text-muted-foreground">
+                          {analysis.urgency === 'emergency' && '🚨 Seek immediate medical attention'}
+                          {analysis.urgency === 'high' && '⚠️ Consult a doctor soon'}
+                          {analysis.urgency === 'medium' && '📋 Schedule an appointment'}
+                          {analysis.urgency === 'low' && '✓ Monitor symptoms'}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Possible Conditions */}
+                  <Card className="border-2 border-purple-500/20">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-purple-500" />
+                        Possible Conditions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {analysis.possibleConditions.map((condition, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <CheckCircle className="w-5 h-5 text-purple-500 mt-0.5" />
+                            <span>{condition}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  {/* Specialist Recommendation */}
+                  <Card className="border-2 border-pink-500/20">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Brain className="w-5 h-5 text-pink-500" />
+                        Recommended Specialist
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-pink-500/10 flex items-center justify-center">
+                            <Activity className="w-6 h-6 text-pink-500" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-lg">{analysis.specialist}</p>
+                            <p className="text-sm text-muted-foreground">Based on your symptoms</p>
+                          </div>
+                        </div>
+                        <Button asChild>
+                          <Link to="/booking">Book Appointment</Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Recommendations */}
+                  <Card className="border-2 border-blue-500/20">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-blue-500" />
+                        Recommendations
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {analysis.recommendations.map((rec, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <CheckCircle className="w-5 h-5 text-blue-500 mt-0.5" />
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  {/* Next Steps */}
+                  <Card className="border-2 border-green-500/20">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <ArrowRight className="w-5 h-5 text-green-500" />
+                        Next Steps
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ol className="space-y-3">
+                        {analysis.nextSteps.map((step, index) => (
+                          <li key={index} className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-bold">
+                              {index + 1}
+                            </div>
+                            <span className="pt-0.5">{step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </CardContent>
+                  </Card>
+
+                  {/* Analyze Again Button */}
+                  <div className="flex gap-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setSymptoms("");
+                        setAnalysis(null);
+                        setTimeout(() => {
+                          document.getElementById('symptom-form')?.scrollIntoView({ behavior: 'smooth' });
+                        }, 100);
+                      }}
+                      className="flex-1"
+                    >
+                      Analyze Different Symptoms
+                    </Button>
+                    <Button asChild className="flex-1">
+                      <Link to="/booking">Find a Doctor</Link>
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Features Grid */}
       <section className="py-16 bg-background/50">

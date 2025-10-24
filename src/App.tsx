@@ -8,6 +8,7 @@ import { Layout } from "@/components/Layout/Layout";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ApiKeyBanner } from "@/components/ApiKeyBanner";
 import Home from "./pages/Home";
 import PatientInfo from "./pages/PatientInfo";
 import Members from "./pages/Members";
@@ -252,6 +253,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <ApiKeyBanner />
           <AppRoutes />
         </TooltipProvider>
       </AuthProvider>

@@ -38,11 +38,16 @@ export default function Hospitals() {
       <div className="container mx-auto px-4 lg:px-6">
         {/* Header */}
         <div className="text-center mb-12">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 bg-primary/10 rounded-full">
+              <Bed className="w-10 h-10 text-primary" />
+            </div>
+          </div>
           <h1 className="text-4xl font-extrabold text-primary mb-4">
-            Top Hospitals in Hyderabad
+            🏥 Top Hospitals in Hyderabad
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-            Discover the best healthcare facilities in Hyderabad with world-class medical services and experienced professionals.
+            Discover the best healthcare facilities in Hyderabad with world-class medical services and experienced professionals. ⭐
           </p>
           
           {/* Search and Filter */}

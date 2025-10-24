@@ -120,7 +120,7 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/about#doctors" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
+                <Link to="/about" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
                   Join as Doctor
                 </Link>
               </li>
@@ -130,7 +130,7 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/about#features" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
+                <Link to="/about" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
                   Platform Features
                 </Link>
               </li>

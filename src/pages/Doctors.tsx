@@ -85,11 +85,16 @@ export default function Doctors() {
       <div className="container mx-auto px-4 lg:px-6">
         {/* Header */}
         <div className="text-center mb-12">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 bg-primary/10 rounded-full">
+              <User className="w-10 h-10 text-primary" />
+            </div>
+          </div>
           <h1 className="text-4xl font-extrabold text-primary mb-4">
-            Expert Doctors in Hyderabad
+            👨‍⚕️ Expert Doctors in Hyderabad
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
-            Connect with experienced medical professionals across various specialties in Hyderabad's top hospitals.
+            Connect with experienced medical professionals across various specialties in Hyderabad's top hospitals. 🏥
           </p>
           
           {/* Search and Filters */}

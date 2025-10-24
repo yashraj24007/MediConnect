@@ -4,12 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Plus, Clock, Pill, Calendar, AlertCircle } from "lucide-react";
+import { Bell, Plus, Clock, Pill, Calendar, AlertCircle, Shield, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { GroqChatService } from "@/services/groqService";
+
+interface Medication {
+  id: number;
+  name: string;
+  dosage: string;
+  frequency: string;
+  time: string;
+  duration: string;
+  startDate: string;
+  active: boolean;
+}
 
 export default function MedicationReminders() {
   const { toast } = useToast();
-  const [medications, setMedications] = useState([
+  const [medications, setMedications] = useState<Medication[]>([
     {
       id: 1,
       name: "Aspirin",
@@ -33,6 +45,9 @@ export default function MedicationReminders() {
   ]);
 
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showInteractionCheck, setShowInteractionCheck] = useState(false);
+  const [isCheckingInteractions, setIsCheckingInteractions] = useState(false);
+  const [interactionResult, setInteractionResult] = useState<string>("");
   const [newMed, setNewMed] = useState({
     name: "",
     dosage: "",
@@ -51,7 +66,7 @@ export default function MedicationReminders() {
       return;
     }
 
-    const medication = {
+    const medication: Medication = {
       id: medications.length + 1,
       ...newMed,
       startDate: new Date().toISOString().split('T')[0],
@@ -77,6 +92,66 @@ export default function MedicationReminders() {
       title: "Status Updated",
       description: "Medication reminder status changed"
     });
+  };
+
+  const handleCheckInteractions = async () => {
+    if (medications.length === 0) {
+      toast({
+        title: "No Medications",
+        description: "Add medications first to check for interactions",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if API key is configured
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+    if (!apiKey || apiKey === 'your_groq_api_key_here') {
+      toast({
+        title: "⚠️ AI Service Not Configured",
+        description: "Please add your Groq API key to the .env file. Get a free key at console.groq.com/keys",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCheckingInteractions(true);
+    setShowInteractionCheck(true);
+    setInteractionResult("");
+
+    try {
+      const medicationList = medications.map(m => `${m.name} ${m.dosage}`).join(", ");
+      
+      const prompt = `As a pharmaceutical AI assistant, analyze the following medication list for potential drug interactions:
+
+Medications: ${medicationList}
+
+Provide a comprehensive analysis including:
+1. Potential drug interactions (if any)
+2. Severity level (none, mild, moderate, severe)
+3. Specific warnings or precautions
+4. General recommendations
+5. Whether medical consultation is advised
+
+Format your response clearly with sections.`;
+
+      const response = await GroqChatService.sendMessage(prompt, []);
+      setInteractionResult(response);
+      
+      setTimeout(() => {
+        document.getElementById('interaction-result')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } catch (error) {
+      console.error("Error checking interactions:", error);
+      toast({
+        title: "Check Failed",
+        description: "Unable to check drug interactions. Please consult a pharmacist.",
+        variant: "destructive"
+      });
+      setInteractionResult("Unable to perform interaction check. Please consult with your healthcare provider or pharmacist for medication safety information.");
+    } finally {
+      setIsCheckingInteractions(false);
+    }
   };
 
   return (
@@ -114,12 +189,99 @@ export default function MedicationReminders() {
         </Card>
 
         {/* Add Medication Button */}
-        <div className="mb-6">
+        <div className="mb-6 flex gap-4">
           {!showAddForm && (
-            <Button onClick={() => setShowAddForm(true)} className="w-full md:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Medication
-            </Button>
+            <>
+              <Button onClick={() => setShowAddForm(true)} className="w-full md:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Medication
+              </Button>
+              {medications.length > 0 && (
+                <Button 
+                  onClick={handleCheckInteractions} 
+                  variant="outline"
+                  disabled={isCheckingInteractions}
+                  className="w-full md:w-auto"
+                >
+                  {isCheckingInteractions ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Checking Interactions...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="w-4 h-4 mr-2" />
+                      Check Drug Interactions (AI)
+                    </>
+                  )}
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Interaction Check Results */}
+        {showInteractionCheck && interactionResult && (
+          <Card className="mb-6 border-2 border-blue-500/20" id="interaction-result">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-6 h-6 text-blue-500" />
+                AI Drug Interaction Analysis
+              </CardTitle>
+              <CardDescription>
+                AI-powered analysis of your medication combinations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line">
+                {interactionResult}
+              </div>
+              <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  <strong>Important:</strong> This AI analysis is for informational purposes only. Always consult your healthcare provider or pharmacist before making any changes to your medications.
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowInteractionCheck(false)}
+                className="mt-4"
+              >
+                Close Analysis
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Add Medication Button */}
+        <div className="mb-6 flex gap-4">
+          {!showAddForm && (
+            <>
+              <Button onClick={() => setShowAddForm(true)} className="w-full md:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Medication
+              </Button>
+              {medications.length > 0 && (
+                <Button 
+                  onClick={handleCheckInteractions} 
+                  variant="outline"
+                  disabled={isCheckingInteractions}
+                  className="w-full md:w-auto"
+                >
+                  {isCheckingInteractions ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Checking Interactions...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="w-4 h-4 mr-2" />
+                      Check Drug Interactions (AI)
+                    </>
+                  )}
+                </Button>
+              )}
+            </>
           )}
         </div>
 

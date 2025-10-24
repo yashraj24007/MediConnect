@@ -1,4 +1,4 @@
-import { Sparkles, Users, Award, Target, Heart, Zap, Shield, Clock, TrendingUp, CheckCircle } from "lucide-react";
+import { Sparkles, Users, Award, Target, Heart, Zap, Shield, Clock, TrendingUp, CheckCircle, Calendar, Stethoscope, Activity } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -204,19 +204,31 @@ export default function About() {
       <section className="py-16 bg-background/50">
         <div className="container mx-auto px-4 lg:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
-            <div className="text-center">
+            <div className="text-center group hover:scale-105 transition-transform">
+              <div className="flex items-center justify-center mb-3">
+                <Users className="w-8 h-8 text-primary" />
+              </div>
               <div className="text-4xl md:text-5xl font-bold text-primary mb-2">10K+</div>
               <div className="text-muted-foreground">Happy Patients</div>
             </div>
-            <div className="text-center">
+            <div className="text-center group hover:scale-105 transition-transform">
+              <div className="flex items-center justify-center mb-3">
+                <Stethoscope className="w-8 h-8 text-accent" />
+              </div>
               <div className="text-4xl md:text-5xl font-bold text-accent mb-2">500+</div>
               <div className="text-muted-foreground">Expert Doctors</div>
             </div>
-            <div className="text-center">
+            <div className="text-center group hover:scale-105 transition-transform">
+              <div className="flex items-center justify-center mb-3">
+                <Activity className="w-8 h-8 text-blue-500" />
+              </div>
               <div className="text-4xl md:text-5xl font-bold text-blue-500 mb-2">24/7</div>
               <div className="text-muted-foreground">AI Support</div>
             </div>
-            <div className="text-center">
+            <div className="text-center group hover:scale-105 transition-transform">
+              <div className="flex items-center justify-center mb-3">
+                <Award className="w-8 h-8 text-emerald-500" />
+              </div>
               <div className="text-4xl md:text-5xl font-bold text-emerald-500 mb-2">99.9%</div>
               <div className="text-muted-foreground">Uptime</div>
             </div>
@@ -227,13 +239,19 @@ export default function About() {
       {/* CTA */}
       <section className="py-20 bg-gradient-to-r from-primary to-accent text-primary-foreground">
         <div className="container mx-auto px-4 lg:px-6 text-center">
-          <h2 className="text-4xl font-bold mb-6">Join the Healthcare Revolution</h2>
+          <div className="flex justify-center mb-6">
+            <div className="p-4 bg-white/10 rounded-full backdrop-blur-sm">
+              <Sparkles className="w-12 h-12" />
+            </div>
+          </div>
+          <h2 className="text-4xl font-bold mb-6">Join the Healthcare Revolution 🚀</h2>
           <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-            Experience the future of healthcare with MediConnect's AI-powered platform
+            Experience the future of healthcare with MediConnect's AI-powered platform ✨
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" variant="secondary" className="text-lg px-8" asChild>
               <Link to="/">
+                <Calendar className="w-5 h-5 mr-2" />
                 Get Started
               </Link>
             </Button>

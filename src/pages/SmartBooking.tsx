@@ -1,15 +1,179 @@
-import { Calendar, Sparkles, Clock, CheckCircle, Users, TrendingUp, ArrowRight } from "lucide-react";
+import { Calendar, Sparkles, Clock, CheckCircle, Users, TrendingUp, ArrowRight, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
-import { useEffect } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { GroqChatService } from "@/services/groqService";
+import { useToast } from "@/hooks/use-toast";
+import { doctors } from "@/data/doctors";
+
+interface DoctorMatch {
+  name: string;
+  specialty: string;
+  matchScore: number;
+  reason: string;
+  availability: string;
+}
 
 export default function SmartBooking() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [healthConcern, setHealthConcern] = useState("");
+  const [isMatching, setIsMatching] = useState(false);
+  const [matches, setMatches] = useState<DoctorMatch[]>([]);
+  const [showMatcher, setShowMatcher] = useState(false);
+
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  const handleStartMatching = () => {
+    setShowMatcher(true);
+    setTimeout(() => {
+      document.getElementById('matcher-form')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleFindDoctor = async () => {
+    if (!healthConcern.trim()) {
+      toast({
+        title: "Please describe your health concern",
+        description: "Enter your health issue to get AI-powered doctor recommendations",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if API key is configured
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+    if (!apiKey || apiKey === 'your_groq_api_key_here') {
+      toast({
+        title: "⚠️ AI Service Not Configured",
+        description: "Please add your Groq API key to the .env file. Get a free key at console.groq.com/keys",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsMatching(true);
+    setMatches([]);
+
+    try {
+      // Get list of specialties from doctors
+      const specialties = [...new Set(doctors.map(d => d.specialty))].join(", ");
+
+      const prompt = `As a medical AI assistant, analyze this health concern and recommend the TOP 3 most suitable doctor specialties from this list: ${specialties}
+
+Health Concern: ${healthConcern}
+
+Provide your response in this JSON format (ensure valid JSON):
+{
+  "matches": [
+    {
+      "specialty": "Cardiologist",
+      "matchScore": 95,
+      "reason": "Heart-related symptoms require cardiac specialist",
+      "urgency": "urgent"
+    },
+    {
+      "specialty": "General Physician",
+      "matchScore": 80,
+      "reason": "Can provide initial assessment",
+      "urgency": "soon"
+    }
+  ]
+}
+
+Important: 
+- ONLY use specialties from this exact list: ${specialties}
+- Match score should be 0-100
+- Provide exactly 2-3 specialty recommendations
+- Order by match score (highest first)
+- Urgency must be: routine, soon, or urgent
+- Return ONLY valid JSON, no extra text`;
+
+      const response = await GroqChatService.sendMessage(prompt, []);
+      
+      // Extract JSON from response
+      let jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const result = JSON.parse(jsonMatch[0]);
+          
+          if (!result.matches || !Array.isArray(result.matches)) {
+            throw new Error("Invalid response structure");
+          }
+          
+          // Match with actual doctors
+          const doctorMatches: DoctorMatch[] = [];
+          
+          for (const match of result.matches.slice(0, 3)) {
+            const matchingDoctors = doctors.filter(d => 
+              d.specialty.toLowerCase().includes(match.specialty.toLowerCase()) ||
+              match.specialty.toLowerCase().includes(d.specialty.toLowerCase())
+            );
+            
+            if (matchingDoctors.length > 0) {
+              // Pick a random doctor from matching specialty
+              const doctor = matchingDoctors[Math.floor(Math.random() * matchingDoctors.length)];
+              doctorMatches.push({
+                name: doctor.name,
+                specialty: doctor.specialty,
+                matchScore: match.matchScore || 75,
+                reason: match.reason,
+                availability: "Next available: Within 1-2 days"
+              });
+            }
+          }
+          
+          // If no matches found, provide general physician
+          if (doctorMatches.length === 0) {
+            const generalDoctors = doctors.filter(d => 
+              d.specialty.toLowerCase().includes('general') ||
+              d.specialty.toLowerCase().includes('physician') ||
+              d.specialty.toLowerCase().includes('medicine')
+            );
+            
+            if (generalDoctors.length > 0) {
+              doctorMatches.push({
+                name: generalDoctors[0].name,
+                specialty: generalDoctors[0].specialty,
+                matchScore: 70,
+                reason: "General physician can provide initial consultation for your concern",
+                availability: "Next available: Within 1-2 days"
+              });
+            }
+          }
+          
+          setMatches(doctorMatches);
+          
+          if (doctorMatches.length === 0) {
+            toast({
+              title: "No exact matches found",
+              description: "Please try browsing our doctors page for available specialists.",
+            });
+          }
+        } catch (parseError) {
+          console.error("JSON parse error:", parseError);
+          throw new Error("Could not parse AI response");
+        }
+      } else {
+        throw new Error("No JSON found in response");
+      }
+    } catch (error) {
+      console.error("Error matching doctors:", error);
+      toast({
+        title: "Matching Error",
+        description: "Unable to find suitable doctors. Please try browsing our doctor list.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsMatching(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-green-500/5 to-emerald-500/5">
@@ -32,11 +196,9 @@ export default function SmartBooking() {
               Intelligent appointment scheduling that matches you with the right specialists based on your health needs and preferences
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-green-500 to-emerald-500 text-white" asChild>
-                <Link to="/booking" className="flex items-center">
-                  <Calendar className="w-5 h-5 mr-2" />
-                  Book Appointment Now
-                </Link>
+              <Button size="lg" className="bg-gradient-to-r from-green-500 to-emerald-500 text-white" onClick={handleStartMatching}>
+                <Calendar className="w-5 h-5 mr-2" />
+                Start Smart Matching
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link to="/doctors" className="flex items-center">
@@ -48,6 +210,140 @@ export default function SmartBooking() {
           </div>
         </div>
       </section>
+
+      {/* Smart Matcher Form */}
+      {showMatcher && (
+        <section className="py-16 bg-background/50" id="matcher-form">
+          <div className="container mx-auto px-4 lg:px-6">
+            <div className="max-w-4xl mx-auto">
+              <Card className="border-2 border-green-500/20">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-green-500" />
+                    Describe Your Health Concern
+                  </CardTitle>
+                  <CardDescription>
+                    Tell us what brings you in today. Our AI will match you with the most suitable specialists.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <Textarea
+                      placeholder="Example: I've been having frequent headaches and feeling dizzy. I also notice my vision gets blurry sometimes..."
+                      className="min-h-[120px] resize-none"
+                      value={healthConcern}
+                      onChange={(e) => setHealthConcern(e.target.value)}
+                      disabled={isMatching}
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={handleFindDoctor}
+                    disabled={isMatching || !healthConcern.trim()}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500"
+                    size="lg"
+                  >
+                    {isMatching ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Finding Best Matches...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5 mr-2" />
+                        Find Matching Doctors
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Doctor Matches */}
+              {matches.length > 0 && (
+                <div className="mt-8 space-y-4 animate-in fade-in slide-in-from-bottom-4">
+                  <h3 className="text-2xl font-bold text-center mb-6">
+                    Top Doctor Recommendations for You
+                  </h3>
+
+                  {matches.map((match, index) => (
+                    <Card key={index} className="border-2 border-green-500/20 hover:shadow-lg transition-all">
+                      <CardContent className="pt-6">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white flex items-center justify-center font-bold text-lg">
+                                #{index + 1}
+                              </div>
+                              <div>
+                                <h4 className="text-xl font-bold">{match.name}</h4>
+                                <Badge className="mt-1">{match.specialty}</Badge>
+                              </div>
+                            </div>
+
+                            <div className="space-y-3 ml-15">
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-semibold">Match Score:</span>
+                                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden w-32">
+                                    <div 
+                                      className="h-full bg-gradient-to-r from-green-500 to-emerald-500"
+                                      style={{ width: `${match.matchScore}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-sm font-bold text-green-600">{match.matchScore}%</span>
+                                </div>
+                              </div>
+
+                              <div>
+                                <p className="text-sm text-muted-foreground">
+                                  <span className="font-semibold text-foreground">Why this doctor:</span> {match.reason}
+                                </p>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm">
+                                <Clock className="w-4 h-4 text-green-500" />
+                                <span className="text-muted-foreground">{match.availability}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <Button asChild className="bg-gradient-to-r from-green-500 to-emerald-500">
+                              <Link to={`/doctors?specialty=${encodeURIComponent(match.specialty)}`}>
+                                Book Now
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-4 mt-8">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setHealthConcern("");
+                        setMatches([]);
+                        setTimeout(() => {
+                          document.getElementById('matcher-form')?.scrollIntoView({ behavior: 'smooth' });
+                        }, 100);
+                      }}
+                      className="flex-1"
+                    >
+                      Try Different Concern
+                    </Button>
+                    <Button asChild className="flex-1">
+                      <Link to="/doctors">Browse All Doctors</Link>
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Features */}
       <section className="py-16 bg-background/50">
