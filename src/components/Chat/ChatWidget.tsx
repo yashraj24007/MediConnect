@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Send, X, AlertCircle, Heart, Brain, Calendar, Pill, Activity, Sparkles } from "lucide-react";
+import { MessageCircle, Send, X, AlertCircle, Heart, Brain, Calendar, Pill, Activity, Sparkles, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { AIMedicalService, AIResponse, AIFeatureType } from "@/services/aiMedicalService";
@@ -394,23 +394,25 @@ export const ChatWidget = () => {
       <Button
         onClick={() => setIsOpen(!isOpen)}
         size="icon"
-        className="w-16 h-16 rounded-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-2xl hover:shadow-primary/30 transition-all duration-300 border-2 border-white/20 hover:border-white/40 dark:border-slate-700/40 dark:hover:border-slate-600/60 backdrop-blur-sm group relative overflow-hidden hover:scale-110"
+        className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-2xl hover:shadow-cyan-500/30 transition-all duration-300 border-2 border-white/30 hover:border-white/50 dark:border-slate-700/40 dark:hover:border-slate-600/60 backdrop-blur-sm group relative overflow-hidden hover:scale-110 hover:rotate-12"
       >
-        <div className="relative z-10 transition-transform duration-300">
-          <MessageCircle className="w-8 h-8" />
+        <div className="relative z-10 transition-transform duration-300 group-hover:scale-110">
+          <Bot className="w-9 h-9 group-hover:animate-pulse" />
           {!isOpen && (
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full animate-bounce border-2 border-white dark:border-slate-800 shadow-lg"></div>
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full animate-bounce border-2 border-white dark:border-slate-800 shadow-lg">
+              <div className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75"></div>
+            </div>
           )}
         </div>
         
         {/* Enhanced animated background rings */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/30 to-accent/30 animate-ping opacity-60 group-hover:opacity-90"></div>
-        <div className="absolute inset-1 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 animate-pulse"></div>
-        <div className="absolute inset-2 rounded-full bg-gradient-to-r from-primary/10 to-accent/10 animate-pulse"></div>
+        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/30 to-cyan-500/30 animate-ping opacity-60 group-hover:opacity-90"></div>
+        <div className="absolute inset-1 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 animate-pulse"></div>
+        <div className="absolute inset-2 rounded-full bg-gradient-to-r from-blue-500/10 to-cyan-500/10 animate-pulse"></div>
         
         {/* Enhanced tooltip */}
         <div className="absolute bottom-full right-0 mb-3 px-4 py-2 bg-background/95 backdrop-blur-md text-foreground text-sm font-medium rounded-xl shadow-xl border border-border/50 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap transform translate-y-2 group-hover:translate-y-0">
-          💬 Chat with Aura AI
+          🤖 Chat with Aura AI Assistant
           <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-background/95"></div>
         </div>
       </Button>

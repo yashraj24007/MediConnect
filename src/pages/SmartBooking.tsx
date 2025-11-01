@@ -1,4 +1,4 @@
-import { Calendar, Sparkles, Clock, CheckCircle, Users, TrendingUp, ArrowRight, Loader2, Send } from "lucide-react";
+import { Calendar, Sparkles, Clock, CheckCircle, Users, TrendingUp, ArrowRight, Send, Loader2, Brain, Star, MapPin, Phone, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,41 +7,34 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { GroqChatService } from "@/services/groqService";
 import { useToast } from "@/hooks/use-toast";
-import { doctors } from "@/data/doctors";
+import { doctors, Doctor } from "@/data/doctors";
 
-interface DoctorMatch {
-  name: string;
+interface DoctorRecommendation {
   specialty: string;
-  matchScore: number;
   reason: string;
-  availability: string;
+  urgency: string;
+  keywords: string[];
 }
 
 export default function SmartBooking() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [healthConcern, setHealthConcern] = useState("");
-  const [isMatching, setIsMatching] = useState(false);
-  const [matches, setMatches] = useState<DoctorMatch[]>([]);
-  const [showMatcher, setShowMatcher] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [recommendation, setRecommendation] = useState<DoctorRecommendation | null>(null);
+  const [showAdvisor, setShowAdvisor] = useState(false);
+  const [matchedDoctors, setMatchedDoctors] = useState<Doctor[]>([]);
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const handleStartMatching = () => {
-    setShowMatcher(true);
-    setTimeout(() => {
-      document.getElementById('matcher-form')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
-
-  const handleFindDoctor = async () => {
+  const handleGetRecommendation = async () => {
     if (!healthConcern.trim()) {
       toast({
         title: "Please describe your health concern",
-        description: "Enter your health issue to get AI-powered doctor recommendations",
+        description: "Tell us what you need help with to get personalized recommendations",
         variant: "destructive"
       });
       return;
@@ -58,41 +51,27 @@ export default function SmartBooking() {
       return;
     }
 
-    setIsMatching(true);
-    setMatches([]);
+    setIsAnalyzing(true);
+    setRecommendation(null);
 
     try {
-      // Get list of specialties from doctors
-      const specialties = [...new Set(doctors.map(d => d.specialty))].join(", ");
-
-      const prompt = `As a medical AI assistant, analyze this health concern and recommend the TOP 3 most suitable doctor specialties from this list: ${specialties}
+      const prompt = `As a medical consultation advisor AI, analyze the following health concern and recommend the appropriate medical specialty.
 
 Health Concern: ${healthConcern}
 
 Provide your response in this JSON format (ensure valid JSON):
 {
-  "matches": [
-    {
-      "specialty": "Cardiologist",
-      "matchScore": 95,
-      "reason": "Heart-related symptoms require cardiac specialist",
-      "urgency": "urgent"
-    },
-    {
-      "specialty": "General Physician",
-      "matchScore": 80,
-      "reason": "Can provide initial assessment",
-      "urgency": "soon"
-    }
-  ]
+  "specialty": "Cardiologist",
+  "reason": "Your symptoms suggest a cardiovascular issue that requires specialist evaluation",
+  "urgency": "Schedule within 1-2 weeks",
+  "keywords": ["heart health", "chest pain", "cardiovascular"]
 }
 
-Important: 
-- ONLY use specialties from this exact list: ${specialties}
-- Match score should be 0-100
-- Provide exactly 2-3 specialty recommendations
-- Order by match score (highest first)
-- Urgency must be: routine, soon, or urgent
+Important:
+- Specialty should be a specific medical specialty (Cardiologist, Dermatologist, Orthopedist, etc.)
+- Reason should explain why this specialty is recommended
+- Urgency should indicate timing (Immediate/Same day, Within 24-48 hours, Within 1 week, Routine checkup)
+- Keywords should be relevant terms for filtering doctors
 - Return ONLY valid JSON, no extra text`;
 
       const response = await GroqChatService.sendMessage(prompt, []);
@@ -102,77 +81,61 @@ Important:
       if (jsonMatch) {
         try {
           const result = JSON.parse(jsonMatch[0]);
+          setRecommendation(result);
           
-          if (!result.matches || !Array.isArray(result.matches)) {
-            throw new Error("Invalid response structure");
-          }
+          // Find matching doctors based on specialty
+          const matched = doctors.filter(doctor => 
+            doctor.specialty.toLowerCase().includes(result.specialty.toLowerCase()) ||
+            result.specialty.toLowerCase().includes(doctor.specialty.toLowerCase())
+          );
           
-          // Match with actual doctors
-          const doctorMatches: DoctorMatch[] = [];
-          
-          for (const match of result.matches.slice(0, 3)) {
-            const matchingDoctors = doctors.filter(d => 
-              d.specialty.toLowerCase().includes(match.specialty.toLowerCase()) ||
-              match.specialty.toLowerCase().includes(d.specialty.toLowerCase())
+          // If no exact match, try to find by keywords in expertise
+          if (matched.length === 0) {
+            const keywordMatched = doctors.filter(doctor => 
+              result.keywords.some(keyword => 
+                doctor.expertise.some(exp => 
+                  exp.toLowerCase().includes(keyword.toLowerCase())
+                )
+              )
             );
-            
-            if (matchingDoctors.length > 0) {
-              // Pick a random doctor from matching specialty
-              const doctor = matchingDoctors[Math.floor(Math.random() * matchingDoctors.length)];
-              doctorMatches.push({
-                name: doctor.name,
-                specialty: doctor.specialty,
-                matchScore: match.matchScore || 75,
-                reason: match.reason,
-                availability: "Next available: Within 1-2 days"
-              });
-            }
+            setMatchedDoctors(keywordMatched.slice(0, 3));
+          } else {
+            setMatchedDoctors(matched.slice(0, 3));
           }
           
-          // If no matches found, provide general physician
-          if (doctorMatches.length === 0) {
-            const generalDoctors = doctors.filter(d => 
-              d.specialty.toLowerCase().includes('general') ||
-              d.specialty.toLowerCase().includes('physician') ||
-              d.specialty.toLowerCase().includes('medicine')
-            );
-            
-            if (generalDoctors.length > 0) {
-              doctorMatches.push({
-                name: generalDoctors[0].name,
-                specialty: generalDoctors[0].specialty,
-                matchScore: 70,
-                reason: "General physician can provide initial consultation for your concern",
-                availability: "Next available: Within 1-2 days"
-              });
-            }
-          }
-          
-          setMatches(doctorMatches);
-          
-          if (doctorMatches.length === 0) {
-            toast({
-              title: "No exact matches found",
-              description: "Please try browsing our doctors page for available specialists.",
-            });
-          }
+          toast({
+            title: "✅ Recommendation Ready",
+            description: `We recommend booking with a ${result.specialty}`,
+          });
+
+          // Scroll to recommendations
+          setTimeout(() => {
+            document.getElementById('doctor-recommendations')?.scrollIntoView({ behavior: 'smooth' });
+          }, 300);
         } catch (parseError) {
-          console.error("JSON parse error:", parseError);
-          throw new Error("Could not parse AI response");
+          console.error("JSON parsing error:", parseError);
+          throw new Error("Failed to parse AI response");
         }
       } else {
-        throw new Error("No JSON found in response");
+        throw new Error("No valid JSON found in response");
       }
     } catch (error) {
-      console.error("Error matching doctors:", error);
+      console.error("Error getting recommendation:", error);
       toast({
-        title: "Matching Error",
-        description: "Unable to find suitable doctors. Please try browsing our doctor list.",
+        title: "Analysis Failed",
+        description: "Unable to process your request. Please try again or book directly.",
         variant: "destructive"
       });
     } finally {
-      setIsMatching(false);
+      setIsAnalyzing(false);
     }
+  };
+
+  const handleStartAdvisor = () => {
+    setShowAdvisor(true);
+    setTimeout(() => {
+      document.getElementById('booking-advisor')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   return (
@@ -193,12 +156,24 @@ Important:
               Smart Booking System
             </h1>
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Intelligent appointment scheduling that matches you with the right specialists based on your health needs and preferences
+              Intelligent appointment scheduling with automatic time optimization, conflict prevention, and seamless doctor availability matching
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-green-500 to-emerald-500 text-white" onClick={handleStartMatching}>
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-xl hover:shadow-2xl transition-all"
+                onClick={() => navigate('/booking')}
+              >
                 <Calendar className="w-5 h-5 mr-2" />
-                Start Smart Matching
+                Book Appointment Now
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={handleStartAdvisor}
+              >
+                <Brain className="w-5 h-5 mr-2" />
+                Get AI Recommendation
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link to="/doctors" className="flex items-center">
@@ -211,139 +186,270 @@ Important:
         </div>
       </section>
 
-      {/* Smart Matcher Form */}
-      {showMatcher && (
-        <section className="py-16 bg-background/50" id="matcher-form">
+      {/* AI Booking Advisor */}
+      {showAdvisor && (
+        <section id="booking-advisor" className="py-16 bg-gradient-to-br from-green-500/10 to-emerald-500/10">
           <div className="container mx-auto px-4 lg:px-6">
-            <div className="max-w-4xl mx-auto">
-              <Card className="border-2 border-green-500/20">
-                <CardHeader>
-                  <CardTitle className="text-2xl flex items-center gap-2">
-                    <Sparkles className="w-6 h-6 text-green-500" />
-                    Describe Your Health Concern
-                  </CardTitle>
+            <div className="max-w-3xl mx-auto">
+              <Card className="border-2 border-green-500/30 shadow-xl">
+                <CardHeader className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                    <Brain className="w-8 h-8 text-white" />
+                  </div>
+                  <CardTitle className="text-2xl">AI Booking Advisor</CardTitle>
                   <CardDescription>
-                    Tell us what brings you in today. Our AI will match you with the most suitable specialists.
+                    Tell us about your health concern and we'll recommend the right specialist
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Describe your health concern</label>
                     <Textarea
-                      placeholder="Example: I've been having frequent headaches and feeling dizzy. I also notice my vision gets blurry sometimes..."
-                      className="min-h-[120px] resize-none"
+                      placeholder="E.g., I have been experiencing persistent headaches and dizziness for the past week..."
                       value={healthConcern}
                       onChange={(e) => setHealthConcern(e.target.value)}
-                      disabled={isMatching}
+                      rows={5}
+                      className="resize-none"
+                      disabled={isAnalyzing}
                     />
                   </div>
 
                   <Button 
-                    onClick={handleFindDoctor}
-                    disabled={isMatching || !healthConcern.trim()}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500"
+                    onClick={handleGetRecommendation}
+                    disabled={isAnalyzing || !healthConcern.trim()}
                     size="lg"
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
                   >
-                    {isMatching ? (
+                    {isAnalyzing ? (
                       <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Finding Best Matches...
+                        Analyzing...
                       </>
                     ) : (
                       <>
-                        <Send className="w-5 h-5 mr-2" />
-                        Find Matching Doctors
+                        <Sparkles className="w-5 h-5 mr-2" />
+                        Get AI Recommendation
                       </>
                     )}
                   </Button>
-                </CardContent>
-              </Card>
 
-              {/* Doctor Matches */}
-              {matches.length > 0 && (
-                <div className="mt-8 space-y-4 animate-in fade-in slide-in-from-bottom-4">
-                  <h3 className="text-2xl font-bold text-center mb-6">
-                    Top Doctor Recommendations for You
-                  </h3>
-
-                  {matches.map((match, index) => (
-                    <Card key={index} className="border-2 border-green-500/20 hover:shadow-lg transition-all">
-                      <CardContent className="pt-6">
-                        <div className="flex items-start justify-between gap-4">
+                  {recommendation && (
+                    <div className="mt-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg border-2 border-green-500/30 space-y-4">
+                        <div className="flex items-start gap-3">
+                          <CheckCircle className="w-6 h-6 text-green-500 mt-1 flex-shrink-0" />
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white flex items-center justify-center font-bold text-lg">
-                                #{index + 1}
-                              </div>
-                              <div>
-                                <h4 className="text-xl font-bold">{match.name}</h4>
-                                <Badge className="mt-1">{match.specialty}</Badge>
-                              </div>
-                            </div>
-
-                            <div className="space-y-3 ml-15">
-                              <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-semibold">Match Score:</span>
-                                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden w-32">
-                                    <div 
-                                      className="h-full bg-gradient-to-r from-green-500 to-emerald-500"
-                                      style={{ width: `${match.matchScore}%` }}
-                                    />
-                                  </div>
-                                  <span className="text-sm font-bold text-green-600">{match.matchScore}%</span>
-                                </div>
-                              </div>
-
-                              <div>
-                                <p className="text-sm text-muted-foreground">
-                                  <span className="font-semibold text-foreground">Why this doctor:</span> {match.reason}
-                                </p>
-                              </div>
-
+                            <h4 className="font-bold text-lg mb-2 text-green-700 dark:text-green-400">
+                              Recommended Specialist: {recommendation.specialty}
+                            </h4>
+                            <p className="text-muted-foreground mb-3">{recommendation.reason}</p>
+                            
+                            <div className="grid grid-cols-1 gap-3 mb-4">
                               <div className="flex items-center gap-2 text-sm">
-                                <Clock className="w-4 h-4 text-green-500" />
-                                <span className="text-muted-foreground">{match.availability}</span>
+                                <Clock className="w-4 h-4 text-orange-500" />
+                                <span className="font-medium">Urgency:</span>
+                                <span className="text-muted-foreground">{recommendation.urgency}</span>
                               </div>
                             </div>
+
+                            {recommendation.keywords && recommendation.keywords.length > 0 && (
+                              <div className="flex flex-wrap gap-2">
+                                {recommendation.keywords.map((keyword, idx) => (
+                                  <Badge key={idx} variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                                    {keyword}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Matched Doctors Section */}
+                      {matchedDoctors.length > 0 && (
+                        <div id="doctor-recommendations" className="space-y-4">
+                          <h4 className="text-xl font-bold text-center">
+                            Available {recommendation.specialty}s
+                          </h4>
+                          <div className="grid gap-6">
+                            {matchedDoctors.map((doctor) => (
+                              <Card key={doctor.id} className="border-2 border-green-500/20 hover:border-green-500/40 transition-all duration-300 hover:shadow-lg">
+                                <CardContent className="p-6">
+                                  <div className="flex flex-col md:flex-row gap-6">
+                                    {/* Doctor Image */}
+                                    <div className="flex-shrink-0">
+                                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-white text-3xl font-bold">
+                                        {doctor.name.split(' ').map(n => n[0]).join('')}
+                                      </div>
+                                    </div>
+
+                                    {/* Doctor Details */}
+                                    <div className="flex-1 space-y-3">
+                                      <div>
+                                        <h5 className="text-xl font-bold text-foreground mb-1">{doctor.name}</h5>
+                                        <p className="text-sm text-muted-foreground">{doctor.qualification}</p>
+                                      </div>
+
+                                      <div className="flex flex-wrap gap-3">
+                                        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                          {doctor.specialty}
+                                        </Badge>
+                                        <Badge variant="outline" className="flex items-center gap-1">
+                                          <Award className="w-3 h-3" />
+                                          {doctor.experience} years exp
+                                        </Badge>
+                                      </div>
+
+                                      <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                                        <div className="flex items-center gap-2">
+                                          <MapPin className="w-4 h-4 text-green-500" />
+                                          <span>{doctor.hospital}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <Phone className="w-4 h-4 text-green-500" />
+                                          <span>{doctor.phone}</span>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex flex-wrap gap-2">
+                                        {doctor.expertise.slice(0, 3).map((exp, idx) => (
+                                          <Badge key={idx} variant="secondary" className="text-xs">
+                                            {exp}
+                                          </Badge>
+                                        ))}
+                                      </div>
+
+                                      <div className="flex items-center justify-between pt-3 border-t">
+                                        <div className="text-lg font-bold text-green-600">
+                                          ₹{doctor.consultationFee}
+                                          <span className="text-sm font-normal text-muted-foreground"> / consultation</span>
+                                        </div>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => navigate(`/doctors/${doctor.id}`)}
+                                          >
+                                            View Profile
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            className="bg-gradient-to-r from-green-500 to-emerald-500"
+                                            onClick={() => navigate('/booking', { state: { selectedDoctor: doctor } })}
+                                          >
+                                            <Calendar className="w-4 h-4 mr-2" />
+                                            Book Now
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
                           </div>
 
-                          <div>
-                            <Button asChild className="bg-gradient-to-r from-green-500 to-emerald-500">
-                              <Link to={`/doctors?specialty=${encodeURIComponent(match.specialty)}`}>
-                                Book Now
-                              </Link>
+                          <div className="text-center pt-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => navigate('/doctors')}
+                              className="border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20"
+                            >
+                              Browse All {recommendation.specialty}s
+                              <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                      )}
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-4 mt-8">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => {
-                        setHealthConcern("");
-                        setMatches([]);
-                        setTimeout(() => {
-                          document.getElementById('matcher-form')?.scrollIntoView({ behavior: 'smooth' });
-                        }, 100);
-                      }}
-                      className="flex-1"
-                    >
-                      Try Different Concern
-                    </Button>
-                    <Button asChild className="flex-1">
-                      <Link to="/doctors">Browse All Doctors</Link>
-                    </Button>
-                  </div>
-                </div>
-              )}
+                      {matchedDoctors.length === 0 && (
+                        <div className="text-center p-6 bg-muted/50 rounded-lg">
+                          <p className="text-muted-foreground mb-4">
+                            No {recommendation.specialty}s found in our database. Browse all doctors or book directly.
+                          </p>
+                          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                            <Button
+                              onClick={() => navigate('/booking')}
+                              className="bg-gradient-to-r from-green-500 to-emerald-500"
+                            >
+                              <Calendar className="w-4 h-4 mr-2" />
+                              Book Appointment
+                            </Button>
+                            <Button
+                              onClick={() => navigate('/doctors')}
+                              variant="outline"
+                              className="border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20"
+                            >
+                              Browse All Doctors
+                              <ArrowRight className="w-4 h-4 ml-2" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
       )}
+
+      {/* What Makes It Smart */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="max-w-4xl mx-auto text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              What Makes Our Booking <span className="text-gradient bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">Smart</span>?
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              No overlaps, no conflicts - just seamless scheduling powered by intelligent algorithms
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            <Card className="border-2 border-green-500/20">
+              <CardHeader>
+                <CheckCircle className="w-12 h-12 text-green-500 mb-4" />
+                <CardTitle>Automatic Conflict Detection</CardTitle>
+                <CardDescription>
+                  Our system automatically prevents double-bookings and scheduling conflicts. You'll only see available time slots that work for both you and your doctor.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-2 border-emerald-500/20">
+              <CardHeader>
+                <Clock className="w-12 h-12 text-emerald-500 mb-4" />
+                <CardTitle>Real-Time Availability</CardTitle>
+                <CardDescription>
+                  See live availability across all doctors and specialties. Our intelligent system updates in real-time to show you exactly what's open.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-2 border-teal-500/20">
+              <CardHeader>
+                <Calendar className="w-12 h-12 text-teal-500 mb-4" />
+                <CardTitle>Time Optimization</CardTitle>
+                <CardDescription>
+                  Smart algorithms suggest optimal appointment times based on your preferences, doctor availability, and clinic schedules for maximum convenience.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-2 border-cyan-500/20">
+              <CardHeader>
+                <TrendingUp className="w-12 h-12 text-cyan-500 mb-4" />
+                <CardTitle>Priority Scheduling</CardTitle>
+                <CardDescription>
+                  Urgent cases are automatically prioritized. Our system intelligently manages appointment queues to ensure critical needs are met promptly.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+      </section>
 
       {/* Features */}
       <section className="py-16 bg-background/50">
@@ -527,13 +633,24 @@ Important:
             Experience the future of appointment scheduling with AI
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="text-lg px-8">
+            <Button 
+              asChild 
+              size="lg" 
+              variant="secondary" 
+              className="text-lg px-10 py-6 shadow-2xl hover:shadow-white/25 hover:scale-105 transition-all"
+            >
               <Link to="/booking" className="flex items-center">
-                Book Now
+                <Calendar className="w-5 h-5 mr-2" />
+                Book Appointment Now
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="bg-white/10 border-white text-white hover:bg-white/20">
+            <Button 
+              asChild 
+              size="lg" 
+              variant="outline" 
+              className="bg-white/10 border-white text-white hover:bg-white/20"
+            >
               <Link to="/doctors">
                 Browse Specialists
               </Link>

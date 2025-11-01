@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 
 export const Footer = () => {
   return (
-    <footer className="bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100 border-t border-slate-300 dark:border-border">
+    <footer className="bg-slate-100 dark:bg-black text-slate-900 dark:text-slate-100 border-t border-slate-300 dark:border-slate-800">
       <div className="container mx-auto px-4 lg:px-6 py-8">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
@@ -52,6 +52,11 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/my-appointments" className="text-slate-700 dark:text-slate-300 hover:text-primary transition-colors hover:translate-x-1 inline-block">
+                  My Appointments
+                </Link>
+              </li>
+              <li>
                 <Link to="/doctors" className="text-slate-700 dark:text-slate-300 hover:text-primary transition-colors hover:translate-x-1 inline-block">
                   Find Doctors
                 </Link>
@@ -59,11 +64,6 @@ export const Footer = () => {
               <li>
                 <Link to="/hospitals" className="text-slate-700 dark:text-slate-300 hover:text-primary transition-colors hover:translate-x-1 inline-block">
                   Find Hospitals
-                </Link>
-              </li>
-              <li>
-                <Link to="/file-share" className="text-slate-700 dark:text-slate-300 hover:text-primary transition-colors hover:translate-x-1 inline-block">
-                  Medical Records
                 </Link>
               </li>
               <li>
@@ -87,12 +87,7 @@ export const Footer = () => {
               </li>
               <li>
                 <Link to="/ai/symptom-analyzer" className="text-slate-700 dark:text-slate-300 hover:text-accent transition-colors hover:translate-x-1 inline-block">
-                  Symptom Checker
-                </Link>
-              </li>
-              <li>
-                <Link to="/ai/smart-booking" className="text-slate-700 dark:text-slate-300 hover:text-accent transition-colors hover:translate-x-1 inline-block">
-                  Smart Appointment Booking
+                  Symptom Analyzer
                 </Link>
               </li>
               <li>
@@ -125,18 +120,13 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/help" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
-                  Doctor Resources
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
-                  Platform Features
+                <Link to="/doctor" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
+                  Doctor Dashboard
                 </Link>
               </li>
               <li>
                 <Link to="/help" className="text-slate-700 dark:text-slate-300 hover:text-blue-400 transition-colors hover:translate-x-1 inline-block">
-                  Support for Doctors
+                  Support
                 </Link>
               </li>
             </ul>
@@ -178,10 +168,10 @@ export const Footer = () => {
         </div>
 
         {/* Newsletter Section - Compact */}
-        <div className="bg-gradient-to-r from-primary/15 to-accent/15 dark:from-primary/15 dark:to-accent/15 rounded-xl p-5 mb-6 border border-primary/20">
+        <div className="bg-gradient-to-r from-primary/15 to-accent/15 dark:from-primary/10 dark:to-accent/10 rounded-xl p-5 mb-6 border border-primary/20 dark:border-primary/20">
           <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-foreground mb-2">Stay Connected</h3>
-            <p className="text-slate-700 dark:text-muted-foreground text-sm mb-4">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Stay Connected</h3>
+            <p className="text-slate-700 dark:text-slate-300 text-sm mb-4">
               Subscribe for health tips, medical updates, and exclusive offers
             </p>
             <div className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
@@ -236,8 +226,8 @@ export const Footer = () => {
           </div>
 
           {/* Bottom Bar */}
-          <div className="border-t border-slate-300 dark:border-border pt-4 w-full text-center">
-            <p className="text-slate-700 dark:text-muted-foreground dark:text-slate-300 text-sm flex items-center justify-center gap-2 flex-wrap">
+          <div className="border-t border-slate-300 dark:border-slate-800 pt-4 w-full text-center">
+            <p className="text-slate-700 dark:text-slate-300 text-sm flex items-center justify-center gap-2 flex-wrap">
               © 2025 MediConnect. All rights reserved. Built with 
               <Heart className="w-4 h-4 fill-red-500 text-red-500 animate-pulse" /> 
               for better healthcare accessibility.

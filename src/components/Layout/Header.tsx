@@ -192,22 +192,24 @@ export const Header = () => {
   };
 
   return (
-    <header className="bg-white/95 dark:bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
+    <header className="bg-white/95 dark:bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50 shadow-sm">
       <nav className="container mx-auto px-4 lg:px-6 py-3 flex justify-between items-center">
         {/* Logo */}
         <Link 
           to="/" 
-          className="flex items-center space-x-3 hover:opacity-90 transition-all duration-300 transform hover:scale-105 group"
+          className="flex items-center space-x-3 hover:opacity-90 transition-all duration-300 transform hover:scale-105 group relative"
         >
           <div className="relative flex-shrink-0">
             <img 
               src="/logo.svg" 
               alt="MediConnect Logo" 
-              className="w-10 h-10 group-hover:rotate-6 transition-transform duration-300"
+              className="w-10 h-10 group-hover:rotate-12 transition-all duration-500 ease-out group-hover:scale-110"
             />
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           </div>
-          <span className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent tracking-tight">
+          <span className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent tracking-tight animate-gradient bg-[length:200%_auto]">
             MediConnect
+            <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-gradient-to-r from-primary to-accent group-hover:w-full transition-all duration-300"></span>
           </span>
         </Link>
 
@@ -218,13 +220,14 @@ export const Header = () => {
               key={item.name}
               to={item.href}
               className={cn(
-                "font-semibold transition-colors hover:text-primary",
+                "font-semibold transition-all duration-300 hover:text-primary relative group",
                 isActiveLink(item.href) 
                   ? "text-primary dark:text-primary-light" 
                   : "text-slate-800 dark:text-slate-200"
               )}
             >
               {item.name}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-accent group-hover:w-full transition-all duration-300"></span>
             </Link>
           ))}
           
@@ -235,37 +238,56 @@ export const Header = () => {
                 <Button 
                   variant="ghost" 
                   className={cn(
-                      "font-semibold transition-colors hover:text-primary hover:bg-transparent p-0 h-auto",
+                      "font-semibold transition-all duration-300 hover:text-primary hover:bg-transparent p-0 h-auto relative group",
                       location.pathname.startsWith('/ai') 
                         ? "text-primary dark:text-primary-light" 
                         : "text-slate-800 dark:text-slate-200"
                     )}
                 >
-                  AI Services
-                  <ChevronDown className="w-4 h-4 ml-1" />
+                  <span className="flex items-center">
+                    AI Services
+                    <ChevronDown className="w-4 h-4 ml-1" />
+                  </span>
+                  <span className={cn(
+                    "absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-primary to-accent transition-all duration-300",
+                    location.pathname.startsWith('/ai') ? "w-full" : "w-0 group-hover:w-full"
+                  )}></span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-80 p-2">
-                {aiServicesMenu.map((service, index) => (
-                  <DropdownMenuItem key={index} asChild className="p-0">
-                    <Link
-                      to={service.href}
-                      className="flex items-center gap-4 p-3 rounded-lg hover:bg-accent cursor-pointer"
-                    >
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${service.gradient} flex items-center justify-center flex-shrink-0`}>
-                        <service.icon className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-sm text-foreground">
-                          {service.name}
+                {aiServicesMenu.map((service, index) => {
+                  const isActive = location.pathname === service.href;
+                  return (
+                    <DropdownMenuItem key={index} asChild className="p-0">
+                      <Link
+                        to={service.href}
+                        className={cn(
+                          "flex items-center gap-4 p-3 rounded-lg hover:bg-accent cursor-pointer transition-all duration-300",
+                          isActive && "bg-gradient-to-r from-primary/10 to-accent/10 border-l-4 border-primary shadow-sm"
+                        )}
+                      >
+                        <div className={cn(
+                          `w-10 h-10 rounded-xl bg-gradient-to-br ${service.gradient} flex items-center justify-center flex-shrink-0 transition-all duration-300`,
+                          isActive && "scale-110 shadow-lg"
+                        )}>
+                          <service.icon className="w-5 h-5 text-white" />
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {service.description}
+                        <div className="flex-1">
+                          <div className={cn(
+                            "font-semibold text-sm transition-colors",
+                            isActive ? "text-primary" : "text-foreground"
+                          )}>
+                            {service.name}
+                            {isActive && <span className="ml-2 text-xs">●</span>}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {service.description}
+                          </div>
                         </div>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -275,13 +297,14 @@ export const Header = () => {
               key={item.name}
               to={item.href}
               className={cn(
-                "font-semibold transition-colors hover:text-primary",
+                "font-semibold transition-all duration-300 hover:text-primary relative group",
                 isActiveLink(item.href) 
                   ? "text-primary dark:text-primary-light" 
                   : "text-slate-800 dark:text-slate-200"
               )}
             >
               {item.name}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-accent group-hover:w-full transition-all duration-300"></span>
             </Link>
           ))}
         </div>
@@ -426,7 +449,7 @@ export const Header = () => {
           ) : (
             <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="flex items-center gap-2">
               <LogIn className="w-4 h-4" />
-              Sign In
+              Login
             </Button>
           )}
 
@@ -484,26 +507,41 @@ export const Header = () => {
                 
                 {mobileAIMenuOpen && (
                   <div className="ml-4 mt-2 space-y-1">
-                    {aiServicesMenu.map((service, index) => (
-                      <Link
-                        key={index}
-                        to={service.href}
-                        className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-accent transition-colors"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center flex-shrink-0`}>
-                          <service.icon className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-sm text-foreground">
-                            {service.name}
+                    {aiServicesMenu.map((service, index) => {
+                      const isActive = location.pathname === service.href;
+                      return (
+                        <Link
+                          key={index}
+                          to={service.href}
+                          className={cn(
+                            "flex items-center gap-3 py-2 px-3 rounded-lg transition-all duration-300",
+                            isActive 
+                              ? "bg-gradient-to-r from-primary/10 to-accent/10 border-l-4 border-primary shadow-sm" 
+                              : "hover:bg-accent"
+                          )}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <div className={cn(
+                            `w-8 h-8 rounded-lg bg-gradient-to-br ${service.gradient} flex items-center justify-center flex-shrink-0 transition-all duration-300`,
+                            isActive && "scale-110 shadow-lg"
+                          )}>
+                            <service.icon className="w-4 h-4 text-white" />
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {service.description}
+                          <div className="flex-1">
+                            <div className={cn(
+                              "font-medium text-sm transition-colors",
+                              isActive ? "text-primary" : "text-foreground"
+                            )}>
+                              {service.name}
+                              {isActive && <span className="ml-2 text-xs">●</span>}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {service.description}
+                            </div>
                           </div>
-                        </div>
-                      </Link>
-                    ))}
+                        </Link>
+                      );
+                    })}
                   </div>
                 )}
               </div>

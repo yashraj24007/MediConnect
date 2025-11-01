@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { ChatWidget } from "@/components/Chat/ChatWidget";
+import { sendAppointmentConfirmationEmail } from "@/services/emailService";
+import EmailNotificationBanner from "@/components/EmailNotificationBanner";
 
 export default function Booking() {
   const { user, profile } = useAuth();
@@ -381,7 +383,24 @@ export default function Booking() {
         existingDemoAppointments.push(demoAppointment);
         localStorage.setItem('demoAppointments', JSON.stringify(existingDemoAppointments));
         
-        toast.success(`✅ Demo appointment booked with Dr. ${selectedDoctor.profiles.first_name} ${selectedDoctor.profiles.last_name}! Check your appointments in the Account page.`);
+        // Send demo confirmation email
+        const emailResult = await sendAppointmentConfirmationEmail({
+          patientName: `${formData.firstName} ${formData.lastName}`,
+          patientEmail: formData.email,
+          doctorName: `Dr. ${selectedDoctor.profiles.first_name} ${selectedDoctor.profiles.last_name}`,
+          specialty: selectedDoctor.specialty,
+          appointmentDate: selectedDate,
+          appointmentTime: selectedTime,
+          serviceType: 'General Consultation',
+          fee: selectedDoctor.consultation_fee || 0
+        });
+
+        if (emailResult.success) {
+          toast.success(`✅ Demo appointment booked! Check your email (${formData.email}) for confirmation.`);
+        } else {
+          toast.success(`✅ Demo appointment booked with Dr. ${selectedDoctor.profiles.first_name} ${selectedDoctor.profiles.last_name}! Check your appointments in the Account page.`);
+        }
+        
         setCurrentStep(3);
         return;
       }
@@ -457,7 +476,25 @@ export default function Booking() {
         return;
       }
 
-      toast.success("🎉 Appointment booked successfully! You can view it in your account under 'My Appointments'.");
+      // Send confirmation email
+      const emailResult = await sendAppointmentConfirmationEmail({
+        patientName: `${formData.firstName} ${formData.lastName}`,
+        patientEmail: formData.email,
+        doctorName: `Dr. ${selectedDoctor.profiles.first_name} ${selectedDoctor.profiles.last_name}`,
+        specialty: selectedDoctor.specialty,
+        appointmentDate: selectedDate,
+        appointmentTime: selectedTime,
+        serviceType: 'General Consultation',
+        fee: selectedDoctor.consultation_fee || 0
+      });
+
+      if (emailResult.success) {
+        toast.success("🎉 Appointment booked successfully! Check your email for confirmation details.");
+      } else {
+        toast.success("🎉 Appointment booked successfully! You can view it in your account under 'My Appointments'.");
+        toast.info("Note: Email notification could not be sent at this time.");
+      }
+
       setCurrentStep(3);
     } catch (error) {
       console.error('Unexpected error:', error);
@@ -560,6 +597,8 @@ export default function Booking() {
             </Link>
           </Button>
 
+          <EmailNotificationBanner />
+          
           <Card className="bg-card/90 backdrop-blur-sm border-border shadow-xl">
             <CardHeader className="bg-primary/10 rounded-t-lg">
               <CardTitle className="text-3xl text-foreground font-bold">Schedule Your Service</CardTitle>
@@ -568,6 +607,77 @@ export default function Booking() {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8">
+              {/* Doctor Selection */}
+              <div className="mb-8">
+                <h2 className="text-xl font-bold text-foreground mb-4">Select Doctor</h2>
+                
+                {doctors.length > 1 ? (
+                  <div className="grid gap-4">
+                    {doctors.map((doctor) => (
+                      <div
+                        key={doctor.id}
+                        onClick={() => setSelectedDoctor(doctor)}
+                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                          selectedDoctor?.id === doctor.id
+                            ? 'bg-gradient-to-r from-primary/10 to-accent/10 border-primary shadow-lg'
+                            : 'border-border hover:border-primary/50 hover:shadow-md'
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                            {doctor.profiles?.first_name?.[0]}{doctor.profiles?.last_name?.[0]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-base font-semibold truncate">
+                              Dr. {doctor.profiles?.first_name} {doctor.profiles?.last_name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">{doctor.specialty}</p>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              <Badge variant="secondary" className="text-xs">
+                                {doctor.experience} years exp
+                              </Badge>
+                              {selectedDoctor?.id === doctor.id && (
+                                <Badge className="text-xs bg-green-500">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Selected
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-primary">₹{doctor.consultation_fee}</div>
+                            <p className="text-xs text-muted-foreground">Fee</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : selectedDoctor ? (
+                  <div className="p-6 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl border-2 border-primary/20">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xl font-bold">
+                        {selectedDoctor.profiles?.first_name?.[0]}{selectedDoctor.profiles?.last_name?.[0]}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold">
+                          Dr. {selectedDoctor.profiles?.first_name} {selectedDoctor.profiles?.last_name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">{selectedDoctor.specialty}</p>
+                        <Badge className="mt-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                          {selectedDoctor.experience} years experience
+                        </Badge>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-primary">₹{selectedDoctor.consultation_fee}</div>
+                        <p className="text-xs text-muted-foreground">Consultation Fee</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">Loading doctors...</p>
+                )}
+              </div>
+
               <div className="grid lg:grid-cols-3 gap-8">
                 {/* Calendar */}
                 <div className="lg:col-span-2">

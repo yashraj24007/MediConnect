@@ -72,10 +72,9 @@ export function AIServicesSection() {
   const handleServiceClick = (action: string, title: string) => {
     switch (action) {
       case "chat":
-        // Open chat widget or scroll to chat
+        // Navigate to AI Health Assistant page
+        navigate('/ai/health-assistant');
         toast.success("Opening AI Health Assistant...");
-        // The chat widget is already available at bottom right
-        window.scrollTo({ top: 0, behavior: 'smooth' });
         break;
       
       case "symptom-checker":
@@ -101,13 +100,15 @@ export function AIServicesSection() {
         break;
       
       case "medication":
-        // Future feature - show coming soon
-        toast.info("Medication Guide coming soon! Stay tuned for comprehensive drug information and reminders.");
+        // Navigate to medication reminders page
+        navigate('/ai/medication-reminders');
+        toast.success("Opening Medication Guide...");
         break;
       
       case "wellness":
-        // Future feature - show coming soon
-        toast.info("Wellness Recommendations coming soon! Get ready for personalized health tips.");
+        // Navigate to health insights page (which includes wellness recommendations)
+        navigate('/ai/health-insights');
+        toast.success("Opening Wellness Recommendations...");
         break;
       
       default:
@@ -137,9 +138,9 @@ export function AIServicesSection() {
           {aiServices.map((service, index) => (
             <Card 
               key={index} 
-              className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-card/50 backdrop-blur-sm border-border/50 overflow-hidden"
+              className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-card/50 backdrop-blur-sm border-border/50 overflow-visible flex flex-col"
             >
-              <CardHeader className="relative">
+              <CardHeader className="relative pb-4">
                 {service.badge && (
                   <Badge className="absolute top-4 right-4 bg-gradient-to-r from-primary to-accent text-primary-foreground">
                     {service.badge}
@@ -152,11 +153,11 @@ export function AIServicesSection() {
                   {service.title}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <CardDescription className="text-muted-foreground leading-relaxed">
+              <CardContent className="space-y-4 flex-1 flex flex-col pb-6">
+                <CardDescription className="text-muted-foreground leading-relaxed flex-grow">
                   {service.description}
                 </CardDescription>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 pb-2">
                   {service.features.map((feature, idx) => (
                     <Badge 
                       key={idx} 
@@ -168,38 +169,42 @@ export function AIServicesSection() {
                   ))}
                 </div>
 
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="mt-auto pt-4 flex flex-col gap-3">
                   <Button
                     onClick={() => handleServiceClick(service.action, service.title)}
-                    className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground group/btn"
+                    className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground group/btn shadow-lg hover:shadow-xl transition-all"
+                    size="lg"
                   >
-                    {service.primaryLabel || 'Access Service'}
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                    <span className="truncate">{service.primaryLabel || 'Access Service'}</span>
+                    <ArrowRight className="w-4 h-4 ml-2 flex-shrink-0 group-hover/btn:translate-x-1 transition-transform" />
                   </Button>
 
                   {/* Secondary action: navigate to info or related page */}
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      // Secondary defaults: navigate to about or doctors page depending on label
-                      if (service.secondaryLabel === 'Try on Homepage') {
-                        navigate('/');
-                        setTimeout(() => {
-                          const el = document.getElementById('symptom-checker');
-                          el?.scrollIntoView({ behavior: 'smooth' });
-                        }, 120);
-                      } else if (service.secondaryLabel === 'Browse Doctors') {
-                        navigate('/doctors');
-                      } else if (service.secondaryLabel === 'Learn More') {
-                        navigate('/about');
-                      } else {
-                        navigate('/about');
-                      }
-                    }}
-                    className="w-full"
-                  >
-                    {service.secondaryLabel || 'Learn More'}
-                  </Button>
+                  {service.secondaryLabel && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        // Secondary defaults: navigate to about or doctors page depending on label
+                        if (service.secondaryLabel === 'Try on Homepage') {
+                          navigate('/');
+                          setTimeout(() => {
+                            const el = document.getElementById('symptom-checker');
+                            el?.scrollIntoView({ behavior: 'smooth' });
+                          }, 120);
+                        } else if (service.secondaryLabel === 'Browse Doctors') {
+                          navigate('/doctors');
+                        } else if (service.secondaryLabel === 'Learn More') {
+                          navigate('/about');
+                        } else {
+                          navigate('/about');
+                        }
+                      }}
+                      className="w-full border-2"
+                      size="lg"
+                    >
+                      <span className="truncate">{service.secondaryLabel}</span>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

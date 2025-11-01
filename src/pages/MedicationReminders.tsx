@@ -88,9 +88,22 @@ export default function MedicationReminders() {
       med.id === id ? { ...med, active: !med.active } : med
     ));
     
+    const medication = medications.find(med => med.id === id);
     toast({
-      title: "Status Updated",
-      description: "Medication reminder status changed"
+      title: medication?.active ? "Medication Paused" : "Medication Resumed",
+      description: medication?.active 
+        ? "You won't receive reminders while paused" 
+        : "Reminders are now active again"
+    });
+  };
+
+  const handleDeleteMedication = (id: number) => {
+    const medication = medications.find(med => med.id === id);
+    setMedications(medications.filter(med => med.id !== id));
+    
+    toast({
+      title: "Medication Deleted",
+      description: `${medication?.name} has been removed from your reminders`
     });
   };
 
@@ -253,38 +266,6 @@ Format your response clearly with sections.`;
           </Card>
         )}
 
-        {/* Add Medication Button */}
-        <div className="mb-6 flex gap-4">
-          {!showAddForm && (
-            <>
-              <Button onClick={() => setShowAddForm(true)} className="w-full md:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Medication
-              </Button>
-              {medications.length > 0 && (
-                <Button 
-                  onClick={handleCheckInteractions} 
-                  variant="outline"
-                  disabled={isCheckingInteractions}
-                  className="w-full md:w-auto"
-                >
-                  {isCheckingInteractions ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Checking Interactions...
-                    </>
-                  ) : (
-                    <>
-                      <Shield className="w-4 h-4 mr-2" />
-                      Check Drug Interactions (AI)
-                    </>
-                  )}
-                </Button>
-              )}
-            </>
-          )}
-        </div>
-
         {/* Add Medication Form */}
         {showAddForm && (
           <Card className="mb-6">
@@ -426,7 +407,12 @@ Format your response clearly with sections.`;
                       >
                         {med.active ? "Pause" : "Resume"}
                       </Button>
-                      <Button size="sm" variant="ghost" className="text-destructive">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDeleteMedication(med.id)}
+                      >
                         Delete
                       </Button>
                     </div>

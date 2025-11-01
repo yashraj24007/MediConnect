@@ -100,7 +100,7 @@ I'm currently unable to analyze your symptoms using AI, but I can provide genera
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/3 via-background to-accent/3">
       {/* Hero Section - Modern & Appealing */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden py-5">
+      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pt-0 pb-8">
         {/* Background Image with Enhanced Overlay */}
         <div 
           className="absolute inset-0 bg-cover bg-center transition-all duration-700"
@@ -109,8 +109,8 @@ I'm currently unable to analyze your symptoms using AI, but I can provide genera
           }}
         />
         
-        {/* Modern Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/75 via-primary/60 to-accent/65 dark:from-background/90 dark:via-primary/70 dark:to-accent/60" />
+        {/* Modern Gradient Overlay - Darker for better text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/85 via-primary/80 to-accent/75 dark:from-background/90 dark:via-primary/70 dark:to-accent/60" />
         
         {/* Floating Background Elements */}
         <div className="absolute inset-0 opacity-20 dark:opacity-15">
@@ -119,45 +119,47 @@ I'm currently unable to analyze your symptoms using AI, but I can provide genera
           <div className="absolute top-3/4 left-1/2 w-64 h-64 bg-accent/15 rounded-full blur-2xl animate-pulse" />
         </div>
 
-        {/* Hero Content */}
-        <div className="relative z-10 text-center max-w-6xl mx-auto px-6 py-16">
-          <div className="space-y-8 animate-slideUpFade">
+        {/* Hero Content - Centered Vertically and Horizontally */}
+        <div className="relative z-10 flex items-center justify-center min-h-[90vh] w-full px-6 py-16">
+          <div className="text-center max-w-6xl mx-auto space-y-8 animate-slideUpFade">
             {/* Hero Badge */}
-            <div className="inline-flex items-center px-6 py-3 rounded-full glass-card mb-6">
+            <div className="inline-flex items-center px-6 py-3 rounded-full glass-card mb-6 shadow-lg backdrop-blur-md">
               <span className="text-2xl mr-2 animate-bounce">✨</span>
               <Sparkles className="w-5 h-5 mr-2 text-yellow-300 animate-pulse" />
-              <span className="text-sm font-semibold text-white/95">🤖 AI Healthcare Platform</span>
+              <span className="text-sm font-semibold text-white/95 dark:text-white">🤖 AI Healthcare Platform</span>
             </div>
             
-            {/* Main Heading */}
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight drop-shadow-2xl tracking-tight">
-              <span className="inline-block bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300 bg-clip-text text-transparent font-black animate-gradient">
-                Smart Healthcare 💊,{" "}
-              </span>
-              <span className="inline-block bg-gradient-to-r from-green-300 via-emerald-300 to-teal-300 bg-clip-text text-transparent font-black animate-gradient animation-delay-150">
-                Simplified ✨
-              </span>
-            </h1>
+            {/* Main Heading - Centered */}
+            <div className="space-y-4">
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold leading-tight drop-shadow-2xl tracking-tight">
+                <span className="block bg-gradient-to-r from-cyan-300 via-blue-300 to-indigo-300 bg-clip-text text-transparent font-black animate-gradient mb-2">
+                  Smart Healthcare 💊
+                </span>
+                <span className="block bg-gradient-to-r from-green-300 via-emerald-300 to-teal-300 bg-clip-text text-transparent font-black animate-gradient animation-delay-150">
+                  Simplified ✨
+                </span>
+              </h1>
+            </div>
             
-            {/* Subheading */}
-            <p className="text-2xl md:text-3xl font-medium text-white/95 max-w-4xl mx-auto leading-relaxed drop-shadow-lg">
+            {/* Subheading - Centered */}
+            <p className="text-xl md:text-2xl lg:text-3xl font-semibold text-white/95 dark:text-white max-w-4xl mx-auto leading-relaxed drop-shadow-lg">
               🚀 AI-Powered Health Solutions at Your Service 🏥
             </p>
             
-            {/* Description */}
-            <p className="text-lg text-white/85 max-w-3xl mx-auto leading-relaxed mb-8">
+            {/* Description - Centered */}
+            <p className="text-base md:text-lg lg:text-xl text-white/85 dark:text-white/90 max-w-3xl mx-auto leading-relaxed">
               Get instant AI health consultations 🩺, manage records effortlessly 📋, and connect with specialists 👨‍⚕️—all in one secure platform 🔒.
             </p>
             
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 pb-8">
+            {/* Action Buttons - Centered */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 pb-8">
               <Button 
                 asChild 
                 variant="default"
                 size="lg" 
-                className="btn-modern bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-2 border-emerald-400/50 text-md px-8 py-3 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
+                className="btn-modern bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-2 border-emerald-400/50 text-base md:text-lg px-10 py-6 shadow-2xl hover:shadow-emerald-500/50 transform hover:scale-105 transition-all duration-300"
               >
-                <Link to="/booking">
+                <Link to="/booking" className="flex items-center">
                   <Calendar className="w-6 h-6 mr-2" />
                   📅 Book Appointment Now
                 </Link>
@@ -166,9 +168,9 @@ I'm currently unable to analyze your symptoms using AI, but I can provide genera
                 asChild 
                 variant="outline" 
                 size="lg" 
-                className="btn-modern bg-white/20 dark:bg-white/10 border-2 border-white/60 dark:border-white/40 text-white hover:bg-white/30 dark:hover:bg-white/20 hover:text-white hover:border-white/80 dark:hover:border-white/60 backdrop-blur-md text-md px-8 py-3 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                className="btn-modern bg-white/20 dark:bg-white/10 border-2 border-white/60 dark:border-white/50 text-white hover:bg-white/30 dark:hover:bg-white/20 hover:text-white hover:border-white/80 dark:hover:border-white/70 backdrop-blur-md text-base md:text-lg px-10 py-6 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
               >
-                <Link to="/about">
+                <Link to="/about" className="flex items-center">
                   <Stethoscope className="w-6 h-6 mr-2" />
                   🔍 Learn More
                 </Link>
@@ -245,8 +247,138 @@ I'm currently unable to analyze your symptoms using AI, but I can provide genera
         </div>
       </section>
 
+      {/* Statistics Section */}
+      <section className="py-16 bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 dark:from-primary/20 dark:via-accent/10 dark:to-primary/20">
+        <div className="container mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
+                10K+
+              </div>
+              <p className="text-muted-foreground font-medium">Happy Patients</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent mb-2">
+                500+
+              </div>
+              <p className="text-muted-foreground font-medium">Expert Doctors</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
+                50+
+              </div>
+              <p className="text-muted-foreground font-medium">Specialties</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent mb-2">
+                24/7
+              </div>
+              <p className="text-muted-foreground font-medium">AI Support</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">Why MediConnect</Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              Your Health Journey, <span className="text-gradient bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Simplified</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Experience healthcare like never before with our innovative platform
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <Card className="medical-card border-primary/10 dark:border-primary/20">
+              <CardHeader>
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-4">
+                  <Sparkles className="w-7 h-7 text-white" />
+                </div>
+                <CardTitle className="text-xl">AI-Powered Intelligence</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base leading-relaxed">
+                  Get instant health insights with our advanced AI assistant. From symptom analysis to personalized recommendations, we've got you covered 24/7.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="medical-card border-primary/10 dark:border-primary/20">
+              <CardHeader>
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center mb-4">
+                  <Calendar className="w-7 h-7 text-white" />
+                </div>
+                <CardTitle className="text-xl">Smart Booking</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base leading-relaxed">
+                  Book appointments effortlessly with our intelligent scheduling system. Find the right doctor at the right time, every time.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="medical-card border-primary/10 dark:border-primary/20">
+              <CardHeader>
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-4">
+                  <FileText className="w-7 h-7 text-white" />
+                </div>
+                <CardTitle className="text-xl">Secure Records</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base leading-relaxed">
+                  Your medical records are safe with enterprise-grade security. Access your health information anytime, anywhere with complete privacy.
+                </CardDescription>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* AI Services Section */}
       <AIServicesSection />
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-br from-primary via-primary/90 to-accent dark:from-primary/80 dark:via-primary/70 dark:to-accent/80">
+        <div className="container mx-auto px-6 lg:px-8 text-center">
+          <div className="max-w-3xl mx-auto">
+            <Sparkles className="w-16 h-16 mx-auto mb-6 text-white animate-pulse" />
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              Ready to Transform Your Healthcare Experience?
+            </h2>
+            <p className="text-xl text-white/90 mb-10">
+              Join thousands of patients who trust MediConnect for their health needs
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                asChild 
+                size="lg" 
+                variant="secondary"
+                className="text-lg px-10 py-6 bg-white hover:bg-white/90 text-primary shadow-2xl"
+              >
+                <Link to="/booking" className="flex items-center">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Book Your First Appointment
+                </Link>
+              </Button>
+              <Button 
+                asChild 
+                size="lg" 
+                variant="outline"
+                className="text-lg px-10 py-6 border-2 border-white bg-white/10 text-white hover:bg-white hover:text-primary shadow-2xl backdrop-blur-sm transition-all duration-300"
+              >
+                <Link to="/ai/health-assistant" className="flex items-center">
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Try AI Assistant
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

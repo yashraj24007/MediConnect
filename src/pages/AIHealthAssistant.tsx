@@ -14,11 +14,17 @@ export default function AIHealthAssistant() {
   }, []);
 
   const handleStartChat = () => {
-    navigate('/');
-    setTimeout(() => {
-      // The chat widget will be visible at the bottom right
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100);
+    // Trigger the floating chat widget to open
+    const chatButton = document.querySelector('[aria-label="Open chat"]') as HTMLButtonElement;
+    if (chatButton) {
+      chatButton.click();
+    } else {
+      // If button not found, try finding by class or other selector
+      const chatWidget = document.querySelector('.fixed.bottom-6.right-6 button, .fixed.bottom-4.right-4 button') as HTMLButtonElement;
+      if (chatWidget) {
+        chatWidget.click();
+      }
+    }
   };
 
   return (

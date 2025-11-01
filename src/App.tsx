@@ -35,6 +35,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import MedicationReminders from "./pages/MedicationReminders";
 import PatientReports from "./pages/PatientReports";
 import Telemedicine from "./pages/Telemedicine";
+import MyAppointments from "./pages/MyAppointments";
 
 const queryClient = new QueryClient();
 
@@ -167,6 +168,14 @@ function AppRoutes() {
           <ProtectedRoute allowedRoles={['patient', 'doctor']}>
             <Layout>
               <Account />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/my-appointments" element={
+          <ProtectedRoute allowedRoles={['patient']}>
+            <Layout>
+              <MyAppointments />
             </Layout>
           </ProtectedRoute>
         } />
