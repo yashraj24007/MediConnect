@@ -22,7 +22,8 @@
 - **Smart Booking System** - Easy-to-use appointment scheduling with calendar integration
 - **My Appointments** - View, cancel, or reschedule appointments
 - **Appointment History** - Track past, upcoming, and cancelled appointments
-- **Email Notifications** - Automatic confirmation and reminder emails
+- **Email Notifications** - Beautiful HTML emails sent via Resend API with appointment details
+- **Automatic Confirmations** - Instant email confirmations with doctor info, date, time, and fee
 
 ### 💊 Medication & Health Tracking
 - **Medication Reminders** - AI-powered medication tracking and reminder system
@@ -61,8 +62,9 @@
 
 ### Backend & Services
 - **Supabase** - PostgreSQL database with real-time capabilities
+- **Supabase Edge Functions** - Serverless functions for email notifications
 - **Groq AI** - Advanced AI language models for health services
-- **Resend** - Email notification service
+- **Resend API** - Transactional email service for appointment confirmations
 
 ### State Management & Data
 - **React Query** - Server state management
@@ -107,12 +109,14 @@
    # Supabase Configuration
    VITE_SUPABASE_URL=your_supabase_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   VITE_SUPABASE_PROJECT_ID=your_project_id
    
-   # Groq AI Configuration
+   # Groq AI Configuration (Required for AI features)
    VITE_GROQ_API_KEY=your_groq_api_key
    
-   # Email Service (Optional)
-   VITE_RESEND_API_KEY=your_resend_api_key
+   # Resend API Key (Stored in Supabase Secrets for Edge Functions)
+   # Get your key from: https://resend.com/api-keys
+   RESEND_API_KEY=your_resend_api_key
    ```
 
 4. **Database Setup**
@@ -120,11 +124,35 @@
    Run the Supabase migrations:
    ```bash
    # Make sure Supabase CLI is installed
+   npm install -g supabase
+   
+   # Login to Supabase
+   supabase login
+   
+   # Link your project
    supabase link --project-ref your-project-ref
+   
+   # Push database migrations
    supabase db push
    ```
 
-5. **Start Development Server**
+5. **Email Service Setup (Optional but Recommended)**
+   
+   Configure email notifications:
+   ```bash
+   # Set Resend API key in Supabase secrets
+   supabase secrets set RESEND_API_KEY=your_resend_api_key
+   
+   # Deploy the email Edge Function
+   supabase functions deploy resendmail
+   ```
+   
+   **Get Resend API Key:**
+   - Sign up at https://resend.com (Free: 3,000 emails/month)
+   - Get API key from dashboard
+   - Configure in Supabase secrets as shown above
+
+6. **Start Development Server**
    ```bash
    npm run dev
    # or
@@ -181,6 +209,8 @@ MediConnect/
 ├── supabase/
 │   ├── migrations/         # Database migrations
 │   ├── functions/          # Edge functions
+│   │   ├── resendmail/    # Email notification function
+│   │   └── chat-ai/       # AI chat function
 │   └── config.toml         # Supabase configuration
 ├── public/                 # Static assets
 └── package.json
@@ -227,6 +257,14 @@ MediConnect/
 - AI-powered drug interaction checking
 - Track medication adherence
 
+### Email Notifications
+- Professional HTML email templates
+- Appointment confirmation emails with all details
+- Includes doctor name, specialty, date, time, and consultation fee
+- Sent via Resend API through Supabase Edge Functions
+- Automatic error handling and retry logic
+- Beautiful gradient design matching brand identity
+
 ### Appointment Management
 - View all appointments (scheduled, completed, cancelled)
 - Cancel with reason and policy warning
@@ -251,6 +289,18 @@ MediConnect/
 - Database - Real-time data access
 - Storage - File uploads
 - Edge Functions - Serverless functions
+
+// Edge Functions
+- resendmail - Send appointment confirmation emails
+- chat-ai - AI-powered chat responses
+```
+
+### Email Service
+```typescript
+// services/emailService.ts
+- sendAppointmentConfirmationEmail() - Send booking confirmations
+- Beautiful HTML email templates with appointment details
+- Automatic error handling and logging
 ```
 
 ---
@@ -368,6 +418,11 @@ For support, email support@mediconnect.com or join our Slack channel.
 
 ## 🗺️ Roadmap
 
+- [x] Email notifications for appointments
+- [x] AI-powered health assistant
+- [x] Symptom analyzer
+- [x] Medication reminders
+- [ ] SMS notifications
 - [ ] Mobile app (React Native)
 - [ ] Video consultation recording
 - [ ] AI prescription validation
@@ -376,6 +431,7 @@ For support, email support@mediconnect.com or join our Slack channel.
 - [ ] Multi-language support
 - [ ] Wearable device integration
 - [ ] Advanced analytics dashboard
+- [ ] Appointment reminder emails (24 hours before)
 
 ---
 
@@ -396,6 +452,11 @@ All migrations are in `supabase/migrations/`. Run them in order.
 - **AI not working**: Check GROQ API key in `.env`
 - **Database errors**: Verify Supabase connection
 - **Build fails**: Clear `node_modules` and reinstall
+- **Emails not sending**: 
+  - Verify `RESEND_API_KEY` is set in Supabase secrets
+  - Check Edge Function logs in Supabase dashboard
+  - Ensure `resendmail` function is deployed
+  - Test with: `supabase functions invoke resendmail --body '{"to":"test@example.com",...}'`
 
 ---
 
