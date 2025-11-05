@@ -95,7 +95,14 @@ export async function sendAppointmentConfirmationEmail(data: AppointmentEmailDat
 
     // Try to send email via Supabase Edge Function
     try {
-      const { data: functionData, error: functionError } = await supabase.functions.invoke('send-appointment-email', {
+      console.log('🚀 Calling resendmail function...');
+      console.log('📧 Email data:', {
+        to: data.patientEmail,
+        patientName: data.patientName,
+        doctorName: data.doctorName
+      });
+
+      const { data: functionData, error: functionError } = await supabase.functions.invoke('resendmail', {
         body: {
           to: data.patientEmail,
           patientName: data.patientName,
@@ -109,7 +116,9 @@ export async function sendAppointmentConfirmationEmail(data: AppointmentEmailDat
       });
 
       if (functionError) {
-        console.warn('⚠️ EMAIL SERVICE NOT CONFIGURED');
+        console.error('❌ Function Error:', functionError);
+        console.error('Error details:', JSON.stringify(functionError, null, 2));
+        console.warn('⚠️ EMAIL SERVICE ERROR');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log('📧 Email Details (Would be sent to):');
         console.log('   To:', data.patientEmail);
@@ -118,37 +127,42 @@ export async function sendAppointmentConfirmationEmail(data: AppointmentEmailDat
         console.log('   Date:', formattedDate);
         console.log('   Time:', data.appointmentTime);
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('🔧 TO ENABLE EMAILS:');
-        console.log('   1. Deploy Edge Function: supabase functions deploy send-appointment-email');
-        console.log('   2. Set Resend API Key: supabase secrets set RESEND_API_KEY=your_key');
-        console.log('   OR');
-        console.log('   3. Configure Database Webhook (see EMAIL_SETUP_GUIDE.md)');
+        console.log('🔧 TROUBLESHOOTING:');
+        console.log('   1. Check if function exists in Supabase Dashboard');
+        console.log('   2. Verify RESEND_API_KEY is set in Supabase secrets');
+        console.log('   3. Check function logs in Supabase Dashboard');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         
-        // Show user-friendly notification
         return {
           success: false,
-          message: 'Appointment confirmed! You can view details in "My Appointments". Note: Email notifications are currently being configured.',
-          needsEmailSetup: true
+          message: 'Appointment confirmed! You can view details in "My Appointments".',
+          needsEmailSetup: true,
+          error: functionError
         };
       }
 
-      console.log('✅ Email sent successfully via Edge Function:', functionData);
+      console.log('✅ Email sent successfully!');
+      console.log('📨 Response:', functionData);
+      
       return {
         success: true,
-        message: 'Email confirmation sent successfully!'
+        message: 'Email confirmation sent successfully!',
+        data: functionData
       };
     } catch (edgeError) {
-      console.error('Edge function error:', edgeError);
+      console.error('❌ Exception in email function:', edgeError);
+      console.error('Error type:', edgeError instanceof Error ? edgeError.name : typeof edgeError);
+      console.error('Error message:', edgeError instanceof Error ? edgeError.message : String(edgeError));
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('⚠️ Email would be sent to:', data.patientEmail);
-      console.log('📖 See EMAIL_SETUP_GUIDE.md for setup instructions');
+      console.log('📖 Check browser console and Supabase function logs');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
       return {
         success: false,
-        message: 'Appointment confirmed! You can view details in "My Appointments". Note: Email notifications are currently being configured.',
-        needsEmailSetup: true
+        message: 'Appointment confirmed! You can view details in "My Appointments".',
+        needsEmailSetup: true,
+        error: edgeError
       };
     }
 

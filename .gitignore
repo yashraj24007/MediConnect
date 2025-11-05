@@ -14,6 +14,15 @@ dist-ssr
 
 # Environment variables
 .env
+.env.local
+.env*.local
+
+# Test files
+test-email.html
+test-email.js
+
+# Supabase
+supabase/.temp/
 
 # Editor directories and files
 .vscode/*
