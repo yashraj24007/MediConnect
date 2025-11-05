@@ -13,6 +13,7 @@ interface AppointmentEmailData {
 
 /**
  * Send appointment confirmation email to the patient
+ * Now uses Supabase's built-in email functionality with custom SMTP
  */
 export async function sendAppointmentConfirmationEmail(data: AppointmentEmailData) {
   try {
@@ -78,10 +79,6 @@ export async function sendAppointmentConfirmationEmail(data: AppointmentEmailDat
               </ul>
 
               <p>You can view and manage your appointments by logging into your MediConnect account.</p>
-              
-              <div style="text-align: center;">
-                <a href="${window.location.origin}/account" class="button">View My Appointments</a>
-              </div>
 
               <p>If you have any questions, please don't hesitate to contact us.</p>
               
@@ -112,18 +109,27 @@ export async function sendAppointmentConfirmationEmail(data: AppointmentEmailDat
       });
 
       if (functionError) {
-        console.warn('Edge function not available, email queued in database:', functionError);
+        console.warn('⚠️ EMAIL SERVICE NOT CONFIGURED');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('📧 Email Details (Would be sent to):');
+        console.log('   To:', data.patientEmail);
+        console.log('   Patient:', data.patientName);
+        console.log('   Doctor:', data.doctorName);
+        console.log('   Date:', formattedDate);
+        console.log('   Time:', data.appointmentTime);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🔧 TO ENABLE EMAILS:');
+        console.log('   1. Deploy Edge Function: supabase functions deploy send-appointment-email');
+        console.log('   2. Set Resend API Key: supabase secrets set RESEND_API_KEY=your_key');
+        console.log('   OR');
+        console.log('   3. Configure Database Webhook (see EMAIL_SETUP_GUIDE.md)');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         
-        // The email notification is automatically queued in database via trigger
-        // when appointment is created, so we just log the status
-        console.log('📧 EMAIL NOTIFICATION QUEUED:');
-        console.log('To:', data.patientEmail);
-        console.log('Subject: 🎉 Appointment Confirmation - MediConnect');
-        console.log('Status: Email will be sent once Edge Function is configured');
-        
+        // Show user-friendly notification
         return {
-          success: true,
-          message: 'Appointment confirmed! Email notification queued for delivery.'
+          success: false,
+          message: 'Appointment confirmed! You can view details in "My Appointments". Note: Email notifications are currently being configured.',
+          needsEmailSetup: true
         };
       }
 
@@ -133,19 +139,16 @@ export async function sendAppointmentConfirmationEmail(data: AppointmentEmailDat
         message: 'Email confirmation sent successfully!'
       };
     } catch (edgeError) {
-      console.warn('Edge function error:', edgeError);
-      
-      // Graceful fallback - email is queued in database by trigger
-      console.log('📧 EMAIL QUEUED (Edge Function not configured):');
-      console.log('To:', data.patientEmail);
-      console.log('Patient:', data.patientName);
-      console.log('Doctor:', data.doctorName);
-      console.log('Date:', data.appointmentDate, 'at', data.appointmentTime);
-      console.log('Note: Configure Edge Function to enable automatic email delivery');
+      console.error('Edge function error:', edgeError);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('⚠️ Email would be sent to:', data.patientEmail);
+      console.log('📖 See EMAIL_SETUP_GUIDE.md for setup instructions');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
       return {
-        success: true,
-        message: 'Appointment confirmed! Email notification will be sent shortly.'
+        success: false,
+        message: 'Appointment confirmed! You can view details in "My Appointments". Note: Email notifications are currently being configured.',
+        needsEmailSetup: true
       };
     }
 

@@ -1,12 +1,15 @@
-import { Activity, TrendingUp, Heart, BarChart3, LineChart, PieChart, ArrowRight, Sparkles, Loader2, Send } from "lucide-react";
+import { Activity, TrendingUp, Heart, BarChart3, LineChart, PieChart, ArrowRight, Sparkles, Loader2, Send, Calendar, FileText, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { GroqChatService } from "@/services/groqService";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HealthInsight {
   category: string;
@@ -15,24 +18,255 @@ interface HealthInsight {
   priority: 'low' | 'medium' | 'high';
 }
 
+interface Appointment {
+  id: string;
+  appointment_date: string;
+  start_time: string;
+  service_type?: string;
+  status: string;
+  fee: number;
+  notes?: string;
+  doctors?: {
+    specialty: string;
+    profiles?: {
+      first_name: string;
+      last_name: string;
+    };
+  };
+}
+
 export default function HealthInsights() {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const [healthData, setHealthData] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [insights, setInsights] = useState<HealthInsight[]>([]);
   const [showAnalyzer, setShowAnalyzer] = useState(false);
   const [overallScore, setOverallScore] = useState<number>(0);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [isLoadingAppointments, setIsLoadingAppointments] = useState(false);
+  const [useBookingData, setUseBookingData] = useState(false);
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  const fetchAppointments = useCallback(async () => {
+    if (!profile?.id) return;
+    
+    setIsLoadingAppointments(true);
+    try {
+      const { data: patientData } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('profile_id', profile.id)
+        .maybeSingle();
+
+      let allAppointments: any[] = [];
+
+      // Fetch real appointments from database
+      if (patientData) {
+        const { data: appointmentsData } = await supabase
+          .from('appointments')
+          .select(`
+            *,
+            doctors (
+              id,
+              specialty,
+              profiles (
+                first_name,
+                last_name
+              )
+            )
+          `)
+          .eq('patient_id', patientData.id)
+          .order('appointment_date', { ascending: false });
+
+        allAppointments = appointmentsData || [];
+      }
+
+      // Add demo appointments from localStorage
+      const demoAppointments = JSON.parse(localStorage.getItem('demoAppointments') || '[]');
+      const formattedDemoAppointments = demoAppointments.map((demo: any) => ({
+        id: demo.id,
+        appointment_date: demo.appointment_date,
+        start_time: demo.start_time,
+        service_type: demo.service_type,
+        status: demo.status,
+        fee: demo.fee,
+        notes: demo.notes,
+        doctors: {
+          id: 'demo',
+          specialty: demo.specialty,
+          profiles: {
+            first_name: demo.doctor_name.replace('Dr. ', '').split(' ')[0],
+            last_name: demo.doctor_name.replace('Dr. ', '').split(' ')[1] || ''
+          }
+        }
+      }));
+
+      // Combine and sort all appointments
+      allAppointments = [...allAppointments, ...formattedDemoAppointments].sort((a, b) => 
+        new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime()
+      );
+
+      setAppointments(allAppointments);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      // Try to get demo appointments at least
+      const demoAppointments = JSON.parse(localStorage.getItem('demoAppointments') || '[]');
+      const formattedDemoAppointments = demoAppointments.map((demo: any) => ({
+        id: demo.id,
+        appointment_date: demo.appointment_date,
+        start_time: demo.start_time,
+        service_type: demo.service_type,
+        status: demo.status,
+        fee: demo.fee,
+        notes: demo.notes,
+        doctors: {
+          specialty: demo.specialty,
+          profiles: {
+            first_name: demo.doctor_name.replace('Dr. ', '').split(' ')[0],
+            last_name: demo.doctor_name.replace('Dr. ', '').split(' ')[1] || ''
+          }
+        }
+      }));
+      
+      setAppointments(formattedDemoAppointments);
+    } finally {
+      setIsLoadingAppointments(false);
+    }
+  }, [profile?.id]);
+
+  // Fetch appointments when component mounts
+  useEffect(() => {
+    if (user && profile) {
+      fetchAppointments();
+    }
+  }, [user, profile, fetchAppointments]);
+
   const handleStartAnalyzer = () => {
     setShowAnalyzer(true);
     setTimeout(() => {
       document.getElementById('insights-form')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
+  };
+
+  const handleAnalyzeFromBookings = async () => {
+    if (appointments.length === 0) {
+      toast({
+        title: "No booking history found",
+        description: "Book an appointment first to get insights from your medical history",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if API key is configured
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+    if (!apiKey || apiKey === 'your_groq_api_key_here') {
+      toast({
+        title: "⚠️ AI Service Not Configured",
+        description: "Please add your Groq API key to the .env file. Get a free key at console.groq.com/keys",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setInsights([]);
+    setOverallScore(0);
+    setUseBookingData(true);
+
+    try {
+      // Format appointment data for analysis
+      const appointmentSummary = appointments.map((apt, index) => {
+        const doctorName = apt.doctors?.profiles 
+          ? `Dr. ${apt.doctors.profiles.first_name} ${apt.doctors.profiles.last_name}`
+          : 'Unknown Doctor';
+        
+        return `${index + 1}. ${new Date(apt.appointment_date).toLocaleDateString()} - ${doctorName} (${apt.doctors?.specialty || 'General'}) - Status: ${apt.status}${apt.notes ? ` - Notes: ${apt.notes}` : ''}`;
+      }).join('\n');
+
+      const prompt = `As a health analytics AI, analyze the following patient's medical appointment history and provide comprehensive health insights.
+
+Patient's Medical History (${appointments.length} appointments):
+${appointmentSummary}
+
+Based on this appointment history, analyze:
+1. Frequency and patterns of medical visits
+2. Types of specialists consulted
+3. Health concerns indicated by specialty visits
+4. Overall health trajectory
+
+Provide your response in this JSON format (ensure valid JSON):
+{
+  "overallScore": 75,
+  "insights": [
+    {
+      "category": "Medical History Pattern",
+      "insight": "Analysis of appointment frequency and specialist types",
+      "recommendation": "Specific recommendations based on patterns",
+      "priority": "medium"
+    },
+    {
+      "category": "Preventive Care",
+      "insight": "Insights about preventive measures needed",
+      "recommendation": "Actionable preventive care steps",
+      "priority": "high"
+    }
+  ]
+}
+
+Important:
+- Overall score should be 0-100 based on appointment patterns and health trajectory
+- Provide 4-6 insights about health patterns, preventive care, and recommendations
+- Consider specialty visits (Cardiologist = heart health concerns, Orthopedic = bone/joint issues, etc.)
+- Make recommendations specific and actionable
+- Priority must be: low, medium, or high
+- Return ONLY valid JSON, no extra text`;
+
+      const response = await GroqChatService.sendMessage(prompt, []);
+      
+      // Extract JSON from response
+      let jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const result = JSON.parse(jsonMatch[0]);
+          
+          if (!result.insights || !Array.isArray(result.insights)) {
+            throw new Error("Invalid response structure");
+          }
+          
+          setInsights(result.insights || []);
+          setOverallScore(result.overallScore || 70);
+        } catch (parseError) {
+          console.error("JSON parse error:", parseError);
+          // Provide fallback insights
+          setInsights([
+            {
+              category: "Medical History",
+              insight: `You have ${appointments.length} appointments in your history`,
+              recommendation: "Continue regular health checkups and maintain good health practices",
+              priority: "medium"
+            }
+          ]);
+          setOverallScore(70);
+        }
+      } else {
+        throw new Error("No JSON found in response");
+      }
+    } catch (error) {
+      console.error("Error analyzing booking history:", error);
+      toast({
+        title: "Analysis Error",
+        description: "Unable to generate insights from booking history. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleAnalyzeHealth = async () => {
@@ -59,6 +293,7 @@ export default function HealthInsights() {
     setIsAnalyzing(true);
     setInsights([]);
     setOverallScore(0);
+    setUseBookingData(false);
 
     try {
       const prompt = `As a health analytics AI, analyze the following health information and provide personalized insights.
@@ -185,6 +420,24 @@ Important:
                 <Activity className="w-5 h-5 mr-2" />
                 Get Health Insights
               </Button>
+              {user && appointments.length > 0 && (
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  onClick={() => {
+                    setShowAnalyzer(true);
+                    setTimeout(() => {
+                      handleAnalyzeFromBookings();
+                      document.getElementById('insights-form')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
+                  disabled={isLoadingAppointments}
+                  className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
+                >
+                  <History className="w-5 h-5 mr-2" />
+                  Insights from Bookings ({appointments.length})
+                </Button>
+              )}
               <Button size="lg" variant="outline" asChild>
                 <Link to="/about">
                   Learn More
@@ -204,14 +457,19 @@ Important:
                 <CardHeader>
                   <CardTitle className="text-2xl flex items-center gap-2">
                     <Activity className="w-6 h-6 text-orange-500" />
-                    Share Your Health Information
+                    Get Health Insights
                   </CardTitle>
                   <CardDescription>
-                    Tell us about your current health status, lifestyle, and any concerns you have.
+                    Choose how you want to analyze your health data
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div>
+                  {/* Option 1: Manual Entry */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-orange-500" />
+                      <h3 className="font-semibold">Enter Health Information Manually</h3>
+                    </div>
                     <Textarea
                       placeholder="Example: I'm 35 years old, weigh 75kg. I exercise 3 times a week but struggle with sleep (5-6 hours). My blood pressure is usually around 130/85. I eat mostly home-cooked meals but snack a lot in the evening..."
                       className="min-h-[150px] resize-none"
@@ -219,32 +477,109 @@ Important:
                       onChange={(e) => setHealthData(e.target.value)}
                       disabled={isAnalyzing}
                     />
+                    <Button 
+                      onClick={handleAnalyzeHealth}
+                      disabled={isAnalyzing || !healthData.trim()}
+                      className="w-full bg-gradient-to-r from-orange-500 to-red-500"
+                      size="lg"
+                    >
+                      {isAnalyzing && !useBookingData ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Analyzing Your Health...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-5 h-5 mr-2" />
+                          Generate Health Insights
+                        </>
+                      )}
+                    </Button>
                   </div>
 
-                  <Button 
-                    onClick={handleAnalyzeHealth}
-                    disabled={isAnalyzing || !healthData.trim()}
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500"
-                    size="lg"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Analyzing Your Health...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-5 h-5 mr-2" />
-                        Generate Health Insights
-                      </>
-                    )}
-                  </Button>
+                  {/* Divider */}
+                  {user && appointments.length > 0 && (
+                    <>
+                      <div className="relative">
+                        <Separator />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="bg-card px-4 text-sm text-muted-foreground font-medium">OR</span>
+                        </div>
+                      </div>
+
+                      {/* Option 2: From Bookings */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <History className="w-5 h-5 text-orange-500" />
+                          <h3 className="font-semibold">Analyze from Previous Bookings</h3>
+                        </div>
+                        
+                        {/* Show booking summary */}
+                        <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                          <p className="text-sm text-muted-foreground">
+                            You have <span className="font-bold text-foreground">{appointments.length}</span> appointment{appointments.length !== 1 ? 's' : ''} in your history
+                          </p>
+                          {appointments.slice(0, 3).map((apt, index) => (
+                            <div key={apt.id} className="flex items-center gap-2 text-sm">
+                              <Calendar className="w-4 h-4 text-orange-500" />
+                              <span>{new Date(apt.appointment_date).toLocaleDateString()}</span>
+                              <span className="text-muted-foreground">-</span>
+                              <span>{apt.doctors?.specialty || 'General'}</span>
+                              <Badge variant="secondary" className="text-xs">{apt.status}</Badge>
+                            </div>
+                          ))}
+                          {appointments.length > 3 && (
+                            <p className="text-xs text-muted-foreground">
+                              And {appointments.length - 3} more...
+                            </p>
+                          )}
+                        </div>
+
+                        <Button 
+                          onClick={handleAnalyzeFromBookings}
+                          disabled={isAnalyzing}
+                          variant="outline"
+                          className="w-full border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
+                          size="lg"
+                        >
+                          {isAnalyzing && useBookingData ? (
+                            <>
+                              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                              Analyzing Booking History...
+                            </>
+                          ) : (
+                            <>
+                              <History className="w-5 h-5 mr-2" />
+                              Get Insights from Bookings
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
               {/* Insights Results */}
               {insights.length > 0 && (
                 <div className="mt-8 space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                  {/* Source Badge */}
+                  <div className="flex justify-center">
+                    <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm py-2 px-4">
+                      {useBookingData ? (
+                        <>
+                          <History className="w-4 h-4 mr-2" />
+                          Insights from {appointments.length} Booking{appointments.length !== 1 ? 's' : ''}
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-4 h-4 mr-2" />
+                          Insights from Manual Entry
+                        </>
+                      )}
+                    </Badge>
+                  </div>
+
                   {/* Overall Health Score */}
                   <Card className="border-2 border-orange-500/20">
                     <CardContent className="pt-6">
@@ -309,23 +644,43 @@ Important:
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
                     <Button 
                       variant="outline" 
                       onClick={() => {
                         setHealthData("");
                         setInsights([]);
                         setOverallScore(0);
+                        setUseBookingData(false);
                         setTimeout(() => {
                           document.getElementById('insights-form')?.scrollIntoView({ behavior: 'smooth' });
                         }, 100);
                       }}
                       className="flex-1"
                     >
+                      <Activity className="w-4 h-4 mr-2" />
                       Analyze Again
                     </Button>
-                    <Button asChild className="flex-1">
-                      <Link to="/booking">Book Health Checkup</Link>
+                    {useBookingData && (
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          setHealthData("");
+                          setInsights([]);
+                          setOverallScore(0);
+                          setUseBookingData(false);
+                        }}
+                        className="flex-1 border-orange-500 text-orange-500"
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Try Manual Entry
+                      </Button>
+                    )}
+                    <Button asChild className="flex-1 bg-gradient-to-r from-orange-500 to-red-500">
+                      <Link to="/booking">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Book Health Checkup
+                      </Link>
                     </Button>
                   </div>
                 </div>

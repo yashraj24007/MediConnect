@@ -53,7 +53,9 @@ const aiServices = [
     description: "Comprehensive medication information, interaction checker, and personalized reminders for your prescriptions.",
     features: ["Drug Information", "Interaction Alerts", "Dosage Reminders"],
     color: "from-indigo-500 to-blue-500",
-    action: "medication"
+    action: "medication",
+    primaryLabel: 'View Medication Guide',
+    secondaryLabel: 'Set Up Reminders'
   },
   {
     icon: Heart,
@@ -61,7 +63,9 @@ const aiServices = [
     description: "AI-driven personalized health tips, nutrition advice, and lifestyle suggestions tailored to your unique health profile.",
     features: ["Custom Plans", "Nutrition Tracking", "Fitness Integration"],
     color: "from-pink-500 to-rose-500",
-    action: "wellness"
+    action: "wellness",
+    primaryLabel: 'Get Wellness Tips',
+    secondaryLabel: 'Learn More'
   }
 ];
 
@@ -74,41 +78,37 @@ export function AIServicesSection() {
       case "chat":
         // Navigate to AI Health Assistant page
         navigate('/ai/health-assistant');
-        toast.success("Opening AI Health Assistant...");
+        toast.success("🤖 Opening AI Health Assistant - Aura is ready to help!");
         break;
       
       case "symptom-checker":
-        // Scroll to symptom checker section on home page
-        navigate('/');
-        setTimeout(() => {
-          const element = document.getElementById('symptom-checker');
-          element?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-        toast.info("Navigate to Symptom Analyzer");
+        // Navigate to symptom analyzer page
+        navigate('/ai/symptom-analyzer');
+        toast.success("🔍 Opening Symptom Analyzer...");
         break;
       
       case "booking":
         // Navigate to booking page
         navigate('/booking');
-        toast.success("Opening Smart Booking System...");
+        toast.success("📅 Opening Smart Booking System...");
         break;
       
       case "patient-info":
         // Navigate to patient info/health insights
         navigate('/patient-info');
-        toast.success("Opening Health Insights...");
+        toast.success("📊 Opening Health Insights Dashboard...");
         break;
       
       case "medication":
         // Navigate to medication reminders page
         navigate('/ai/medication-reminders');
-        toast.success("Opening Medication Guide...");
+        toast.success("💊 Opening Medication Guide...");
         break;
       
       case "wellness":
         // Navigate to health insights page (which includes wellness recommendations)
         navigate('/ai/health-insights');
-        toast.success("Opening Wellness Recommendations...");
+        toast.success("❤️ Opening Wellness Recommendations...");
         break;
       
       default:
@@ -191,10 +191,16 @@ export function AIServicesSection() {
                             const el = document.getElementById('symptom-checker');
                             el?.scrollIntoView({ behavior: 'smooth' });
                           }, 120);
+                          toast.info("Navigating to home page...");
                         } else if (service.secondaryLabel === 'Browse Doctors') {
                           navigate('/doctors');
+                          toast.info("Browsing available doctors...");
+                        } else if (service.secondaryLabel === 'Set Up Reminders') {
+                          navigate('/ai/medication-reminders');
+                          toast.info("Opening medication reminders...");
                         } else if (service.secondaryLabel === 'Learn More') {
                           navigate('/about');
+                          toast.info("Learn more about our services...");
                         } else {
                           navigate('/about');
                         }
